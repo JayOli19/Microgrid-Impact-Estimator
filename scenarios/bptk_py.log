@@ -1,0 +1,9 @@
+2026-02-10 15:24:12.939376, [ERROR] Module not found Error when trying to load simulation class from external file. Only use relative paths and do not rename the class inside the generated class! Error Message: Empty module name
+2026-02-10 15:24:12.947754, [ERROR] Module not found Error when trying to load simulation class from external file. Only use relative paths and do not rename the class inside the generated class! Error Message: Empty module name
+2026-02-10 15:24:12.947754, [ERROR] Module not found Error when trying to load simulation class from external file. Only use relative paths and do not rename the class inside the generated class! Error Message: Empty module name
+2026-02-10 15:24:12.958391, [ERROR] Module not found Error when trying to load simulation class from external file. Only use relative paths and do not rename the class inside the generated class! Error Message: Empty module name
+2026-02-10 15:24:12.960635, [ERROR] No scenarios found for scenario managers "sddsl_customer_acquisition" and scenarios ""
+2026-02-10 15:24:12.964234, [ERROR] No scenario found for scenario_managers=['sddsl_customer_acquisition'] and scenario_names=[]. Cancelling
+2026-02-10 15:24:12.966717, [ERROR] Scenario "base" not found in any scenario manager!
+2026-02-10 15:24:12.966717, [ERROR] Scenario "low_word_of_mouth" not found in any scenario manager!
+2026-02-10 15:24:12.972306, [ERROR] Scenario "high_word_of_mouth" not found in any scenario manager!

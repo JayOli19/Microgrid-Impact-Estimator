@@ -1,0 +1,206 @@
+2026-01-21 23:00:51.705827, [ERROR] No data to plot found. It seems there is no scenario available. Resetting the scenario cache or model might help if you are trying to rerun a scenario.
+2026-01-21 23:00:51.707865, [ERROR] No output data produced.
+2026-01-21 23:13:13.875513, [ERROR] No data to plot found. It seems there is no scenario available. Resetting the scenario cache or model might help if you are trying to rerun a scenario.
+2026-01-21 23:13:13.877486, [ERROR] No output data produced.
+2026-01-21 23:17:32.744084, [ERROR] No data to plot found. It seems there is no scenario available. Resetting the scenario cache or model might help if you are trying to rerun a scenario.
+2026-01-21 23:17:32.746125, [ERROR] No output data produced.
+2026-01-22 13:06:00.794692, [ERROR] No data to plot found. It seems there is no scenario available. Resetting the scenario cache or model might help if you are trying to rerun a scenario.
+2026-01-22 13:06:00.805433, [ERROR] No output data produced.
+2026-02-10 21:11:31.949779, [ERROR] No parser available for filetype log
+2026-02-10 21:11:31.949779, [ERROR] No parser available for file scenarios\bptk_py.log. Skipping!
+2026-02-10 21:11:31.949779, [ERROR] No parser available for filetype ipynb
+2026-02-10 21:11:31.957974, [ERROR] No parser available for file scenarios\Scenario_test.ipynb. Skipping!
+2026-02-10 21:11:55.511566, [ERROR] No output data produced.
+2026-02-10 21:13:05.659014, [ERROR] No parser available for filetype log
+2026-02-10 21:13:05.660768, [ERROR] No parser available for file scenarios\bptk_py.log. Skipping!
+2026-02-10 21:13:05.660768, [ERROR] No parser available for filetype ipynb
+2026-02-10 21:13:05.660768, [ERROR] No parser available for file scenarios\Scenario_test.ipynb. Skipping!
+2026-02-10 21:13:26.818429, [ERROR] No output data produced.
+2026-02-10 21:16:33.002809, [ERROR] No parser available for filetype log
+2026-02-10 21:16:33.005027, [ERROR] No parser available for file scenarios\bptk_py.log. Skipping!
+2026-02-10 21:16:33.005027, [ERROR] No parser available for filetype ipynb
+2026-02-10 21:16:33.005027, [ERROR] No parser available for file scenarios\Scenario_test.ipynb. Skipping!
+2026-02-10 21:16:54.222141, [ERROR] No output data produced.
+2026-02-10 22:24:11.703589, [ERROR] No parser available for filetype log
+2026-02-10 22:24:11.705593, [ERROR] No parser available for file scenarios\bptk_py.log. Skipping!
+2026-02-10 22:24:11.706587, [ERROR] No parser available for filetype ipynb
+2026-02-10 22:24:11.706587, [ERROR] No parser available for file scenarios\Scenario_test.ipynb. Skipping!
+2026-02-10 22:24:19.741561, [ERROR] No output data produced.
+2026-02-10 23:27:56.632133, [ERROR] No parser available for filetype log
+2026-02-10 23:27:56.633133, [ERROR] No parser available for file scenarios\bptk_py.log. Skipping!
+2026-02-10 23:27:56.634136, [ERROR] No parser available for filetype ipynb
+2026-02-10 23:27:56.634136, [ERROR] No parser available for file scenarios\Scenario_test.ipynb. Skipping!
+2026-02-10 23:28:04.941941, [ERROR] No output data produced.
+2026-02-10 23:37:53.251781, [ERROR] No parser available for filetype log
+2026-02-10 23:37:53.252776, [ERROR] No parser available for file scenarios\bptk_py.log. Skipping!
+2026-02-10 23:37:53.253773, [ERROR] No parser available for filetype ipynb
+2026-02-10 23:37:53.254777, [ERROR] No parser available for file scenarios\Scenario_test.ipynb. Skipping!
+2026-02-10 23:38:01.530392, [ERROR] No output data produced.
+2026-02-10 23:43:08.949528, [ERROR] No parser available for filetype log
+2026-02-10 23:43:08.950531, [ERROR] No parser available for file scenarios\bptk_py.log. Skipping!
+2026-02-10 23:43:08.951542, [ERROR] No parser available for filetype ipynb
+2026-02-10 23:43:08.952542, [ERROR] No parser available for file scenarios\Scenario_test.ipynb. Skipping!
+2026-02-10 23:45:22.188569, [ERROR] No parser available for filetype log
+2026-02-10 23:45:22.190573, [ERROR] No parser available for file scenarios\bptk_py.log. Skipping!
+2026-02-10 23:45:22.191577, [ERROR] No parser available for filetype ipynb
+2026-02-10 23:45:22.191577, [ERROR] No parser available for file scenarios\Scenario_test.ipynb. Skipping!
+2026-02-10 23:46:22.925419, [ERROR] No parser available for filetype log
+2026-02-10 23:46:22.927422, [ERROR] No parser available for file scenarios\bptk_py.log. Skipping!
+2026-02-10 23:46:22.928931, [ERROR] No parser available for filetype ipynb
+2026-02-10 23:46:22.928931, [ERROR] No parser available for file scenarios\Scenario_test.ipynb. Skipping!
+2026-02-10 23:49:25.843975, [ERROR] No parser available for filetype log
+2026-02-10 23:49:25.844984, [ERROR] No parser available for file scenarios\bptk_py.log. Skipping!
+2026-02-10 23:49:25.845978, [ERROR] No parser available for filetype ipynb
+2026-02-10 23:49:25.845978, [ERROR] No parser available for file scenarios\Scenario_test.ipynb. Skipping!
+2026-02-10 23:49:25.860652, [ERROR] Scenario manager "microgrid_electrification_hybrid" not found!
+2026-02-10 23:49:25.861667, [ERROR] Scenario "base" not found in any scenario manager!
+2026-02-10 23:49:25.862677, [WARN] No output data produced. Hopefully this was your intention.
+2026-02-10 23:51:07.566746, [ERROR] No parser available for filetype log
+2026-02-10 23:51:07.567747, [ERROR] No parser available for file scenarios\bptk_py.log. Skipping!
+2026-02-10 23:51:07.568256, [ERROR] No parser available for filetype ipynb
+2026-02-10 23:51:07.569274, [ERROR] No parser available for file scenarios\Scenario_test.ipynb. Skipping!
+2026-02-10 23:51:11.130353, [ERROR] No parser available for filetype log
+2026-02-10 23:51:11.131361, [ERROR] No parser available for file scenarios\bptk_py.log. Skipping!
+2026-02-10 23:51:11.132353, [ERROR] No parser available for filetype ipynb
+2026-02-10 23:51:11.132353, [ERROR] No parser available for file scenarios\Scenario_test.ipynb. Skipping!
+2026-02-10 23:51:57.109170, [ERROR] No parser available for filetype log
+2026-02-10 23:51:57.110151, [ERROR] No parser available for file scenarios\bptk_py.log. Skipping!
+2026-02-10 23:51:57.111188, [ERROR] No parser available for filetype ipynb
+2026-02-10 23:51:57.112151, [ERROR] No parser available for file scenarios\Scenario_test.ipynb. Skipping!
+2026-02-10 23:51:57.120154, [ERROR] Scenario manager "microgrid_electrification_hybrid" not found!
+2026-02-10 23:51:57.120154, [ERROR] Scenario "base" not found in any scenario manager!
+2026-02-10 23:51:57.121331, [WARN] No output data produced. Hopefully this was your intention.
+2026-02-10 23:52:14.436431, [ERROR] No parser available for filetype log
+2026-02-10 23:52:14.437435, [ERROR] No parser available for file scenarios\bptk_py.log. Skipping!
+2026-02-10 23:52:14.438432, [ERROR] No parser available for filetype ipynb
+2026-02-10 23:52:14.439435, [ERROR] No parser available for file scenarios\Scenario_test.ipynb. Skipping!
+2026-02-10 23:52:41.491132, [ERROR] No parser available for filetype log
+2026-02-10 23:52:41.492132, [ERROR] No parser available for file scenarios\bptk_py.log. Skipping!
+2026-02-10 23:52:41.493137, [ERROR] No parser available for filetype ipynb
+2026-02-10 23:52:41.494135, [ERROR] No parser available for file scenarios\Scenario_test.ipynb. Skipping!
+2026-02-10 23:54:13.049833, [ERROR] No parser available for filetype log
+2026-02-10 23:54:13.051851, [ERROR] No parser available for file scenarios\bptk_py.log. Skipping!
+2026-02-10 23:54:13.052835, [ERROR] No parser available for filetype ipynb
+2026-02-10 23:54:13.053835, [ERROR] No parser available for file scenarios\Scenario_test.ipynb. Skipping!
+2026-02-10 23:55:05.137401, [ERROR] No parser available for filetype log
+2026-02-10 23:55:05.139356, [ERROR] No parser available for file scenarios\bptk_py.log. Skipping!
+2026-02-10 23:55:05.139356, [ERROR] No parser available for filetype ipynb
+2026-02-10 23:55:05.140372, [ERROR] No parser available for file scenarios\Scenario_test.ipynb. Skipping!
+2026-02-10 23:55:13.201822, [ERROR] No output data produced.
+2026-02-11 00:31:00.332829, [ERROR] No parser available for filetype log
+2026-02-11 00:31:00.333828, [ERROR] No parser available for file scenarios\bptk_py.log. Skipping!
+2026-02-11 00:31:00.334855, [ERROR] No parser available for filetype ipynb
+2026-02-11 00:31:00.335827, [ERROR] No parser available for file scenarios\Scenario_test.ipynb. Skipping!
+2026-02-11 00:56:06.324673, [ERROR] No parser available for filetype log
+2026-02-11 00:56:06.326670, [ERROR] No parser available for file scenarios\bptk_py.log. Skipping!
+2026-02-11 00:56:06.327670, [ERROR] No parser available for filetype ipynb
+2026-02-11 00:56:06.328670, [ERROR] No parser available for file scenarios\Scenario_test.ipynb. Skipping!
+2026-02-11 01:00:23.146994, [ERROR] No parser available for filetype log
+2026-02-11 01:00:23.147999, [ERROR] No parser available for file scenarios\bptk_py.log. Skipping!
+2026-02-11 01:00:23.148991, [ERROR] No parser available for filetype ipynb
+2026-02-11 01:00:23.150007, [ERROR] No parser available for file scenarios\Scenario_test.ipynb. Skipping!
+2026-02-11 01:14:19.551444, [ERROR] No parser available for filetype log
+2026-02-11 01:14:19.552445, [ERROR] No parser available for file scenarios\bptk_py.log. Skipping!
+2026-02-11 01:14:19.553446, [ERROR] No parser available for filetype ipynb
+2026-02-11 01:14:19.553446, [ERROR] No parser available for file scenarios\Scenario_test.ipynb. Skipping!
+2026-02-11 01:15:08.771621, [ERROR] No parser available for filetype log
+2026-02-11 01:15:08.772623, [ERROR] No parser available for file scenarios\bptk_py.log. Skipping!
+2026-02-11 01:15:08.773617, [ERROR] No parser available for filetype ipynb
+2026-02-11 01:15:08.773617, [ERROR] No parser available for file scenarios\Scenario_test.ipynb. Skipping!
+2026-02-11 01:15:08.781620, [ERROR] Scenario manager "microgrid_electrification_hybrid" not found!
+2026-02-11 01:15:08.782707, [ERROR] Scenario "base" not found in any scenario manager!
+2026-02-11 01:15:08.783691, [WARN] No output data produced. Hopefully this was your intention.
+2026-02-11 01:15:20.325361, [ERROR] No parser available for filetype log
+2026-02-11 01:15:20.327344, [ERROR] No parser available for file scenarios\bptk_py.log. Skipping!
+2026-02-11 01:15:20.329341, [ERROR] No parser available for filetype ipynb
+2026-02-11 01:15:20.329341, [ERROR] No parser available for file scenarios\Scenario_test.ipynb. Skipping!
+2026-02-11 01:15:52.103032, [ERROR] No parser available for filetype log
+2026-02-11 01:15:52.104068, [ERROR] No parser available for file scenarios\bptk_py.log. Skipping!
+2026-02-11 01:15:52.105041, [ERROR] No parser available for filetype ipynb
+2026-02-11 01:15:52.105041, [ERROR] No parser available for file scenarios\Scenario_test.ipynb. Skipping!
+2026-02-11 01:19:06.764806, [ERROR] No parser available for filetype log
+2026-02-11 01:19:06.766805, [ERROR] No parser available for file scenarios\bptk_py.log. Skipping!
+2026-02-11 01:19:06.767803, [ERROR] No parser available for filetype ipynb
+2026-02-11 01:19:06.767803, [ERROR] No parser available for file scenarios\Scenario_test.ipynb. Skipping!
+2026-02-11 02:01:00.302147, [ERROR] No parser available for filetype log
+2026-02-11 02:01:00.304634, [ERROR] No parser available for file scenarios\bptk_py.log. Skipping!
+2026-02-11 02:01:00.305648, [ERROR] No parser available for filetype ipynb
+2026-02-11 02:01:00.305648, [ERROR] No parser available for file scenarios\Scenario_test.ipynb. Skipping!
+2026-02-11 02:04:10.205624, [ERROR] No parser available for filetype log
+2026-02-11 02:04:10.206629, [ERROR] No parser available for file scenarios\bptk_py.log. Skipping!
+2026-02-11 02:04:10.207623, [ERROR] No parser available for filetype ipynb
+2026-02-11 02:04:10.207623, [ERROR] No parser available for file scenarios\Scenario_test.ipynb. Skipping!
+2026-02-11 02:05:10.639564, [ERROR] No parser available for filetype log
+2026-02-11 02:05:10.640566, [ERROR] No parser available for file scenarios\bptk_py.log. Skipping!
+2026-02-11 02:05:10.641565, [ERROR] No parser available for filetype ipynb
+2026-02-11 02:05:10.642564, [ERROR] No parser available for file scenarios\Scenario_test.ipynb. Skipping!
+2026-02-11 14:47:17.147501, [ERROR] No parser available for filetype log
+2026-02-11 14:47:17.155656, [ERROR] No parser available for file scenarios\bptk_py.log. Skipping!
+2026-02-11 14:47:17.155656, [ERROR] No parser available for filetype ipynb
+2026-02-11 14:47:17.155656, [ERROR] No parser available for file scenarios\Scenario_test.ipynb. Skipping!
+2026-02-12 00:19:40.683915, [ERROR] No parser available for filetype log
+2026-02-12 00:19:40.685913, [ERROR] No parser available for file scenarios\bptk_py.log. Skipping!
+2026-02-12 00:19:40.686916, [ERROR] No parser available for filetype ipynb
+2026-02-12 00:19:40.687913, [ERROR] No parser available for file scenarios\Scenario_test.ipynb. Skipping!
+2026-02-15 17:11:29.715465, [ERROR] No parser available for filetype log
+2026-02-15 17:11:29.719505, [ERROR] No parser available for file scenarios\bptk_py.log. Skipping!
+2026-02-15 17:11:29.721520, [ERROR] No parser available for filetype ipynb
+2026-02-15 17:11:29.723531, [ERROR] No parser available for file scenarios\Scenario_test.ipynb. Skipping!
+2026-02-16 00:01:08.496636, [ERROR] No parser available for filetype log
+2026-02-16 00:01:08.500076, [ERROR] No parser available for file scenarios\bptk_py.log. Skipping!
+2026-02-16 00:01:08.504103, [ERROR] No parser available for filetype ipynb
+2026-02-16 00:01:08.506120, [ERROR] No parser available for file scenarios\Scenario_test.ipynb. Skipping!
+2026-02-16 00:01:09.032493, [ERROR] No data to plot found. It seems there is no scenario available. Resetting the scenario cache or model might help if you are trying to rerun a scenario.
+2026-02-16 00:01:09.040652, [ERROR] No output data produced.
+2026-02-16 20:39:42.282038, [ERROR] No parser available for filetype log
+2026-02-16 20:39:42.290122, [ERROR] No parser available for file scenarios\bptk_py.log. Skipping!
+2026-02-16 20:39:42.290122, [ERROR] No parser available for filetype ipynb
+2026-02-16 20:39:42.290122, [ERROR] No parser available for file scenarios\Scenario_test.ipynb. Skipping!
+2026-02-17 00:49:54.996391, [ERROR] No parser available for filetype log
+2026-02-17 00:49:54.998393, [ERROR] No parser available for file scenarios\bptk_py.log. Skipping!
+2026-02-17 00:49:55.000386, [ERROR] No parser available for filetype ipynb
+2026-02-17 00:49:55.001385, [ERROR] No parser available for file scenarios\Scenario_test.ipynb. Skipping!
+2026-02-17 00:56:52.427445, [ERROR] No parser available for filetype log
+2026-02-17 00:56:52.428443, [ERROR] No parser available for file scenarios\bptk_py.log. Skipping!
+2026-02-17 00:56:52.430443, [ERROR] No parser available for filetype ipynb
+2026-02-17 00:56:52.430443, [ERROR] No parser available for file scenarios\Scenario_test.ipynb. Skipping!
+2026-02-17 01:09:04.623447, [ERROR] No parser available for filetype log
+2026-02-17 01:09:04.624448, [ERROR] No parser available for file scenarios\bptk_py.log. Skipping!
+2026-02-17 01:09:04.625447, [ERROR] No parser available for filetype ipynb
+2026-02-17 01:09:04.625447, [ERROR] No parser available for file scenarios\Scenario_test.ipynb. Skipping!
+2026-02-17 08:58:21.061236, [ERROR] No parser available for filetype log
+2026-02-17 08:58:21.063239, [ERROR] No parser available for file scenarios\bptk_py.log. Skipping!
+2026-02-17 08:58:21.064237, [ERROR] No parser available for filetype ipynb
+2026-02-17 08:58:21.065237, [ERROR] No parser available for file scenarios\Scenario_test.ipynb. Skipping!
+2026-02-17 09:03:46.840551, [ERROR] No parser available for filetype log
+2026-02-17 09:03:46.841507, [ERROR] No parser available for file scenarios\bptk_py.log. Skipping!
+2026-02-17 09:03:46.841507, [ERROR] No parser available for filetype ipynb
+2026-02-17 09:03:46.842511, [ERROR] No parser available for file scenarios\Scenario_test.ipynb. Skipping!
+2026-02-17 09:04:18.658472, [ERROR] No parser available for filetype log
+2026-02-17 09:04:18.659462, [ERROR] No parser available for file scenarios\bptk_py.log. Skipping!
+2026-02-17 09:04:18.660460, [ERROR] No parser available for filetype ipynb
+2026-02-17 09:04:18.661462, [ERROR] No parser available for file scenarios\Scenario_test.ipynb. Skipping!
+2026-02-17 09:26:46.939854, [ERROR] No parser available for filetype log
+2026-02-17 09:26:46.940856, [ERROR] No parser available for file scenarios\bptk_py.log. Skipping!
+2026-02-17 09:26:46.942903, [ERROR] No parser available for filetype ipynb
+2026-02-17 09:26:46.943450, [ERROR] No parser available for file scenarios\Scenario_test.ipynb. Skipping!
+2026-02-17 09:27:43.371868, [ERROR] No parser available for filetype log
+2026-02-17 09:27:43.372890, [ERROR] No parser available for file scenarios\bptk_py.log. Skipping!
+2026-02-17 09:27:43.374000, [ERROR] No parser available for filetype ipynb
+2026-02-17 09:27:43.374864, [ERROR] No parser available for file scenarios\Scenario_test.ipynb. Skipping!
+2026-02-17 11:59:00.409133, [ERROR] No parser available for filetype log
+2026-02-17 11:59:00.410135, [ERROR] No parser available for file scenarios\bptk_py.log. Skipping!
+2026-02-17 11:59:00.411135, [ERROR] No parser available for filetype ipynb
+2026-02-17 11:59:00.412133, [ERROR] No parser available for file scenarios\Scenario_test.ipynb. Skipping!
+2026-02-17 12:33:39.576000, [ERROR] No parser available for filetype log
+2026-02-17 12:33:39.576990, [ERROR] No parser available for file scenarios\bptk_py.log. Skipping!
+2026-02-17 12:33:39.577975, [ERROR] No parser available for filetype ipynb
+2026-02-17 12:33:39.577975, [ERROR] No parser available for file scenarios\Scenario_test.ipynb. Skipping!
+2026-02-17 13:27:07.948334, [ERROR] No parser available for filetype log
+2026-02-17 13:27:07.950230, [ERROR] No parser available for file scenarios\bptk_py.log. Skipping!
+2026-02-17 13:27:07.950230, [ERROR] No parser available for filetype ipynb
+2026-02-17 13:27:07.951229, [ERROR] No parser available for file scenarios\Scenario_test.ipynb. Skipping!
+2026-02-17 17:11:20.397699, [ERROR] No parser available for filetype log
+2026-02-17 17:11:20.399700, [ERROR] No parser available for file scenarios\bptk_py.log. Skipping!
+2026-02-17 17:11:20.400720, [ERROR] No parser available for filetype ipynb
+2026-02-17 17:11:20.401697, [ERROR] No parser available for file scenarios\Scenario_test.ipynb. Skipping!
