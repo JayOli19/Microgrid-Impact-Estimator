@@ -1,0 +1,1 @@
+The microgrid impact estimator is a system dynamics/ agent-based hybrid model designed to estimate to social and environmental effects of a microgrid system. The model is meant to serve as a backend to the Microgrid Project Toolkit.
