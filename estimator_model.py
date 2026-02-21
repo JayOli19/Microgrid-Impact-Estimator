@@ -82,7 +82,7 @@ class Household(Agent):
             self.members.append({"role":"woman","employed":random.random()<0.25,"income":0,"exposure":0,"exposure_fraction":0.628,"age":random.randint(18, 59)})
         num_children = random.randint(0, 3)
         for _ in range(num_children):
-            self.members.append({"role":"child","education_state":"","study_time":0,"schooling":0.0,"income":0,"exposure":0,"exposure_fraction":0.742,"gender":random.choice(["male","female"]),"age":random.randint(0, 17), "employed":"False"})
+            self.members.append({"role":"child","education_state":"","schooling":0.0,"income":0,"exposure":0,"exposure_fraction":0.742,"gender":random.choice(["male","female"]),"age":random.randint(0, 17), "employed":"False"})
                 
         self.fuel_appliances = {}  # name → owned (True/False)
         for name in FUEL_APPLIANCE_CATALOG:
@@ -107,22 +107,68 @@ class Household(Agent):
         return 0.0
     
 
-    def set_schooling(self):
-        dropout_rate_baseline = 0.15
+    def set_schooling(self,primary_completion,lower_secondary_completion,upper_secondary_completion):
+    
+
+      
+
         for m in self.members:
+
+            if m["role"] != "child":
+                continue
+
             if m["age"] < 6:
                 m["education_state"] = "not_started"
                 m["schooling"] = 0
                 continue
 
-            potential_years = min(m["age"] - 6, 12)
+            if m["age"] < 12:
+            # still in primary
+                m["education_state"] = "enrolled"
+                m["schooling"] = m["age"] - 6
+                continue
 
-            completed_years = 0
+        # age >= 12
+            if random.random() < primary_completion:
+                years = 6
+            else:
+                years = random.randint(0, 5)
+                m["education_state"] = "dropped_out"
 
-            year = 0.0
-            while year < potential_years:
-                if random.random() < dropout_rate_baseline:
-                    break
+            if m["age"] >= 16:
+                if random.random() < lower_secondary_completion:
+                    years = 10
+                else:
+                    years = random.randint(6, 9)
+                    m["education_state"] = "dropped_out"
+
+            if m["age"] >= 18:
+                if random.random() < upper_secondary_completion:
+                    years = 12
+                    m["education_state"] = "completed"
+                else:
+                    years = random.randint(10, 11)
+                    m["education_state"] = "dropped_out"
+
+            m["schooling"] = years
+
+      #  dropout_rate_baseline = 0.11
+      #  for m in self.members:
+      #      if m["age"] < 6:
+      #          m["education_state"] = "not_started"
+      #          m["schooling"] = 0
+      #          continue
+
+      #      potential_years = min(m["age"] - 6, 12)
+
+      #      completed_years = 0
+      #      year = 0.0
+
+
+            
+      #      while year < potential_years:
+      #          if random.random() < dropout_rate_baseline:
+    """              break
                 completed_years += 1
                 year += 1
 
@@ -136,8 +182,8 @@ class Household(Agent):
                 m["education_state"] = "enrolled"
             else:
                 m["education_state"] = "completed"
-
-    def step(self,available_jobs):
+"""
+    def step(self,available_jobs,employment_rate_baseline,hourly_farm_wage,hourly_non_farm_wage,job_separation_rate, dropout_rate_baseline,baseline_monthly_wage_men,baseline_monthly_wage_women,baseline_schooling,electrification_effect_men,electrification_effect_women,farm_work_shift,non_farm_work_shift):
         job_changes = 0.0
         def annual_to_monthly(percentage):
             return ((1+percentage)**(1/12))-1
@@ -151,11 +197,11 @@ class Household(Agent):
         work_time_women = saved_hours_women * 0.4
         leisure_time_women = saved_hours_women * 0.4
         study_time_women = saved_hours_women * 0.2
-        dropout_rate_baseline = 0.15
+        dropout_rate_baseline = 0.11
         baseline_monthly_wage_men = 130
         baseline_monthly_wage_women = 85
         baseline_schooling = 6.0
-        error = 0.1
+        error_term = random.uniform(-0.05, 0.05) # random error term to reflect unobserved factors affecting employment
         employment_rate_baseline = annual_to_monthly(0.07)#0.07
         employment_rate_women_connected = annual_to_monthly(0.16)#0.16
         hourly_farm_wage = 2
@@ -163,42 +209,35 @@ class Household(Agent):
         job_separation_rate = annual_to_monthly(0.02)#0.02
         electrification_effect_women = 0.9 #some studies suggest reduced female wages in areas of high electrification
         electrification_effect_men = 1.1 #elefrification is linked to increased wages for men
-        working_days = 20 # number of working days in a monthly
+        working_days = 20 # number of working days in a month
         farm_work_shift = 0 #for farm work shift scenario. 1 for scenario, 0 otherwise
         non_farm_work_shift = 1 #for non-farm work shift scenario. 1 for scenario, 0 otherwise           
 
         for m in self.members:
             m["age"] += (1/12)
             if self.state == "connected":
-                dropout_rate = dropout_rate_baseline*(1-0.25) #assumes electrification reduces dropout rate by 25%
+                dropout_rate = annual_to_monthly(dropout_rate_baseline*(1-0.25)) #assumes electrification reduces dropout rate by 25%
             else:
-                dropout_rate = dropout_rate_baseline
+                dropout_rate = annual_to_monthly(dropout_rate_baseline)
+            if m["role"]=="child":
+                # Start school
+                if m["age"] >= 6 and m["education_state"] == "not_started":
+                    m["education_state"] = "enrolled"
 
-             # Start school
-            if m["age"] >= 6 and m["education_state"] == "not_started":
-                m["education_state"] = "enrolled"
-
-            # If enrolled → accumulate schooling
-            if m["education_state"] == "enrolled":
-                # Dropout event
-                if random.random() < dropout_rate and m["age"]%1==0: # dropout can only occur at the end of a year of schooling
-                    m["education_state"] = "dropped_out"
-                else:
-                    m["schooling"] += (1/12)
-                    # Completion condition
-                    if m["schooling"] >= 12:
+                 # If enrolled → accumulate schooling
+                if m["education_state"] == "enrolled":
+                    # Dropout event
+                    if random.random() < dropout_rate: #and m["age"]%1==0: # dropout occurs at the end of a year of schooling
+                        m["education_state"] = "dropped_out"
+                    else:
+                        m["schooling"] += (1/12)
+                        # Completion condition
+                        if m["schooling"] >= 12:
+                            m["education_state"] = "completed"
+                    # Force exit at leaving age
+                    if m["age"] >= 18 and m["education_state"] == "enrolled":
                         m["education_state"] = "completed"
-
-            # Force exit at leaving age
-            if m["age"] >= 18 and m["education_state"] == "enrolled":
-                m["education_state"] = "completed"
                 
-       #     if m["role"]=="child" and m["employed"]==False and m["in_school"]:
-       #         if random.random()<dropout_rate:
-       #             m["in_school"] = False
-       #         else:
-       #             m["schooling"] += 1/12
-               
 
          #employment decision 
         for m in self.members:
@@ -236,7 +275,7 @@ class Household(Agent):
                 elif m["role"]=="child" and m["gender"] == "male":
                     if self.state == "connected":
                         #if (m["schooling"]-baseline_schooling) > 0:
-                        m["income"] = ((baseline_monthly_wage_men*electrification_effect_men) + (work_time_men*working_days*hourly_non_farm_wage))*math.exp((0.096*(m["schooling"]-baseline_schooling))+(0.0169*(m["age"]-m["schooling"]-6))+(-0.0003*(m["age"]-m["schooling"]-6)**2))#-baseline_schooling)# uses part of Mincer equation to view income effect of schooling
+                        m["income"] = ((baseline_monthly_wage_men*electrification_effect_men) + (work_time_men*working_days*hourly_non_farm_wage))*math.exp((0.096*(m["schooling"]-baseline_schooling))+(0.0169*(m["age"]-m["schooling"]-6))+(-0.0003*(m["age"]-m["schooling"]-6)**2)+error_term)#-baseline_schooling)# uses part of Mincer equation to view income effect of schooling
                         #else:
                          #   m["income"] = ((baseline_monthly_wage_men*electrification_effect_men) + (work_time_men*working_days*hourly_non_farm_wage))# uses part of Mincer equation to view income effect of schooling
                     else:
@@ -244,7 +283,7 @@ class Household(Agent):
                 elif m["role"]=="child" and m["gender"] == "female":
                     if self.state == "connected":
                         #if (m["schooling"]-baseline_schooling) > 0:
-                        m["income"] = (((baseline_monthly_wage_women*electrification_effect_women) + ((work_time_women*working_days*hourly_farm_wage)*farm_work_shift) + (work_time_women*working_days*hourly_non_farm_wage)*non_farm_work_shift))*math.exp((0.115*(m["schooling"]-baseline_schooling))+(0.0169*(m["age"]-m["schooling"]-6))+(-0.0003*(m["age"]-m["schooling"]-6)**2))#-baseline_schooling)
+                        m["income"] = (((baseline_monthly_wage_women*electrification_effect_women) + ((work_time_women*working_days*hourly_farm_wage)*farm_work_shift) + (work_time_women*working_days*hourly_non_farm_wage)*non_farm_work_shift))*math.exp((0.115*(m["schooling"]-baseline_schooling))+(0.0169*(m["age"]-m["schooling"]-6))+(-0.0003*(m["age"]-m["schooling"]-6)**2)+error_term)#-baseline_schooling)
                         #else:
                         #    m["income"] = (((baseline_monthly_wage_women*electrification_effect_women) + ((work_time_women*working_days*hourly_farm_wage)*farm_work_shift) + (work_time_women*working_days*hourly_non_farm_wage)*non_farm_work_shift))
                     else:
@@ -268,8 +307,7 @@ class Household(Agent):
     def total_income(self):
         return sum(m.get("income",0) for m in self.members)
 
-    def total_study_time(self):
-        return sum(m.get("study_time",0) for m in self.members if m["role"]=="child")
+   
     
     def total_schooling(self):
         return sum(m.get("schooling",0) for m in self.members if m["role"]=="child")
@@ -359,10 +397,9 @@ class Household(Agent):
             total_co2_emissions += co2_emissions
         return total_co2_emissions
 
-    def pm25_concentration(self):
-        air_change_rate_daily = 24.0 #air changes per day in the kitchen
-        kitchen_volume = 20.0 # m^3
-        outdoor_concentration = 1e-6
+    def pm25_concentration(self,air_change_rate_daily,kitchen_volume,outdoor_concentration):
+
+        
 
         weighted_fraction = 0.0
         total_emissions = 0.0
@@ -382,10 +419,7 @@ class Household(Agent):
         
         return pm25_concentration
 
-    def pm25_concentration_baseline(self):
-        air_change_rate_daily = 24.0 #air changes per day in the kitchen
-        kitchen_volume = 20.0 # m^3
-        outdoor_concentration = 1e-6
+    def pm25_concentration_baseline(self,air_change_rate_daily,kitchen_volume,outdoor_concentration):
 
         weighted_fraction = 0.0
         total_emissions_baseline = 0.0
@@ -401,8 +435,8 @@ class Household(Agent):
         pm25_concentration_baseline = ((total_emissions_baseline * frac) / (air_change_rate_daily * kitchen_volume)) + outdoor_concentration
         return pm25_concentration_baseline
 
-    def baseline_cases(self):
-        concentration_baseline = self.pm25_concentration_baseline()
+    def baseline_cases(self,air_change_rate_daily,kitchen_volume,outdoor_concentration):
+        concentration_baseline = self.pm25_concentration_baseline(air_change_rate_daily,kitchen_volume,outdoor_concentration)
         alpha = DISEASE_PARAMS["alpha"]
         gamma = DISEASE_PARAMS["gamma"]
         delta = DISEASE_PARAMS["delta"]
@@ -418,8 +452,8 @@ class Household(Agent):
             total_cases_baseline += attributable_cases_baseline
         return total_cases_baseline
         
-    def cases(self):
-        concentration = self.pm25_concentration()
+    def cases(self,air_change_rate_daily,kitchen_volume,outdoor_concentration):
+        concentration = self.pm25_concentration(air_change_rate_daily,kitchen_volume,outdoor_concentration)
         alpha = DISEASE_PARAMS["alpha"]
         gamma = DISEASE_PARAMS["gamma"]
         delta = DISEASE_PARAMS["delta"]
@@ -469,7 +503,7 @@ class Household(Agent):
         
         return household_utility
 
-    def consider_microgrid_adoption(self, reliability, social_influence,cost_per_kwh):
+    def consider_microgrid_adoption(self, reliability, social_influence,cost_per_kwh,air_change_rate_daily, kitchen_volume, outdoor_concentration):
         alpha_income = 0.16;
         alpha_reliability = 0.5;
         alpha_health = 0.1
@@ -480,10 +514,10 @@ class Household(Agent):
         income = self.total_income()
         baseline_cost = self.baseline_fuel_cost()
         energy_cost = self.energy_cost(cost_per_kwh)
-        cases_baseline = self.baseline_cases()
-        cases = self.cases()
-        health_improvement = (cases_baseline - cases)/cases_baseline
-        cost_savings = (baseline_cost - energy_cost)/baseline_cost
+        cases_baseline = self.baseline_cases(air_change_rate_daily, kitchen_volume, outdoor_concentration)
+        cases = self.cases(air_change_rate_daily, kitchen_volume, outdoor_concentration)
+        health_improvement = (cases_baseline - cases)/cases_baseline if cases_baseline > 0 else 0
+        cost_savings = (baseline_cost - energy_cost)/baseline_cost if baseline_cost > 0 else 0
 
         utility = (
                 aversion_to_adoption
@@ -498,8 +532,7 @@ class Household(Agent):
         microgrid_adoption_prob = 1 / (1 + math.exp(-utility))
         
         if random.random() < microgrid_adoption_prob:
-            self.electrify()
-            
+            self.electrify()            
 
 
 # --- System Dynamics Model ---
@@ -515,7 +548,7 @@ class ElectrificationSD:
         self.no_of_current_repairs = model.stock("no_of_current_repairs")
         self.available_jobs = model.stock("available_jobs")
         self.discounted_social_welfare_function = model.stock("discounted_social_welfare_function")
-        self.employment_change = model.flow("employment_change")#################
+       
         
         # Flows
         self.household_microgrid_adoption = model.flow("household_microgrid_adoption")
@@ -527,6 +560,7 @@ class ElectrificationSD:
         self.job_creation = model.flow("job_creation")
         self.social_welfare_function = model.flow("social_welfare_function")
         self.carbon_cost = model.flow("carbon_cost")
+        self.employment_change = model.flow("employment_change")#################
 
         # Converters
         self.households_connected = model.converter("households_connected")
@@ -549,8 +583,6 @@ class ElectrificationSD:
         self.total_cases = model.converter("total_cases")        
         self.baseline_cases = model.converter("baseline_cases")
         self.health_improvements = model.converter("health_improvements")
-
-       # self.human_capital = model.converter("human_capital")
         self.employment = model.converter("employment")
         self.business_income = model.converter("business_income")
         self.capital_investment = model.converter("capital_investment")
@@ -560,7 +592,6 @@ class ElectrificationSD:
 
         # Aggregate social/economic converters
         self.avg_income = model.converter("avg_income")
-        self.avg_study_time = model.converter("avg_study_time")
         self.appliance_demand = model.converter("appliance_demand")
         self.utility_sum = model.converter("utility_sum")
         self.changes_in_jobs = model.flow("changes_in_jobs")
@@ -694,18 +725,36 @@ class ElectrificationHybrid(Model):
         available_jobs = int(self.sd_model.available_jobs(time))
         cost_per_kwh = self.cost_per_kwh
         eta = self.eta
+        primary_completion = self.primary_completion
+        lower_secondary_completion = self.lower_secondary_completion
+        upper_secondary_completion = self.upper_secondary_completion
+        employment_rate_baseline = self.employment_rate_baseline
+        dropout_rate_baseline = self.dropout_rate_baseline
+        hourly_farm_wage = self.hourly_farm_wage
+        hourly_non_farm_wage = self.hourly_non_farm_wage
+        job_separation_rate = self.job_separation_rate
+        baseline_monthly_wage_men = self.baseline_monthly_wage_men
+        baseline_monthly_wage_women = self.baseline_monthly_wage_women
+        baseline_schooling = self.baseline_schooling
+        electrification_effect_men = self.electrification_effect_men
+        electrification_effect_women = self.electrification_effect_women
+        farm_work_shift = self.farm_work_shift
+        non_farm_work_shift = self.non_farm_work_shift
+        air_change_rate_daily = self.air_change_rate_daily
+        kitchen_volume = self.kitchen_volume
+        outdoor_concentration = self.outdoor_concentration
         reliability = self.sd_model.reliability(time)
         social_influence = self.sd_model.social_influence_microgrid(time)
         total_job_changes = 0.0
         if time == self.starttime:
             for h in self.agents:
-                h.set_schooling()
-            baseline_cases = sum(h.baseline_cases() for h in self.agents)
+                h.set_schooling(primary_completion,lower_secondary_completion,upper_secondary_completion)
+            baseline_cases = sum(h.baseline_cases(air_change_rate_daily,kitchen_volume,outdoor_concentration) for h in self.agents)
             self.sd_model.baseline_cases.equation = baseline_cases
         for h in self.agents:
-            if h.state != "connected":
-                h.consider_microgrid_adoption(reliability, social_influence,cost_per_kwh)
-            job_changes = h.step(available_jobs)
+            if h.state != "connected" and time%3==0: #household considers microgrid adoption every 3 months
+                h.consider_microgrid_adoption(reliability, social_influence,cost_per_kwh,air_change_rate_daily, kitchen_volume, outdoor_concentration)
+            job_changes = h.step(available_jobs,employment_rate_baseline,hourly_farm_wage,hourly_non_farm_wage,job_separation_rate, dropout_rate_baseline,baseline_monthly_wage_men,baseline_monthly_wage_women,baseline_schooling,electrification_effect_men,electrification_effect_women,farm_work_shift,non_farm_work_shift)
             available_jobs += job_changes
             total_job_changes += job_changes
             if h.state == "connected":
@@ -714,8 +763,7 @@ class ElectrificationHybrid(Model):
 
         # Aggregate outcomes from agents
         connected_count = sum(1 for h in self.agents if h.state == "connected")
-        avg_income = sum(h.total_income() for h in self.agents) / len(self.agents)
-        avg_study = sum(h.total_study_time() for h in self.agents) / len(self.agents)
+        avg_income = sum(h.total_income() for h in self.agents) / len(self.agents) if len(self.agents) > 0 else 0
         appliance_demand = sum(h.appliance_demand() for h in self.agents)
         baseline_fuel_cost = sum(h.baseline_fuel_cost () for h in self.agents)
         social_welfare_function = sum(h.social_welfare_function (reliability, social_influence,cost_per_kwh,eta) for h in self.agents)
@@ -725,13 +773,12 @@ class ElectrificationHybrid(Model):
         total_energy_cost = sum(h.energy_cost(cost_per_kwh) for h in self.agents)
         baseline_fuel_cost = sum(h.baseline_fuel_cost() for h in self.agents)
         co2_emissions = sum(h.co2_emissions() for h in self.agents)
-        total_cases = sum(h.cases() for h in self.agents)
+        total_cases = sum(h.cases(air_change_rate_daily,kitchen_volume,outdoor_concentration) for h in self.agents)
         average_schooling = sum(h.total_schooling() for h in self.agents)/sum(h.total_children() for h in self.agents) if sum(h.total_children() for h in self.agents) > 0 else 0
         
         # Feed back into SD converters
         self.sd_model.households_connected.equation = connected_count
         self.sd_model.avg_income.equation = avg_income
-        self.sd_model.avg_study_time.equation = avg_study
         self.sd_model.appliance_demand.equation = appliance_demand
         self.sd_model.total_energy_cost.equation = total_energy_cost
         self.sd_model.baseline_fuel_cost.equation = baseline_fuel_cost
@@ -768,7 +815,7 @@ class ElectrificationHybrid(Model):
 
         
 # --- Simulation Setup ---
-def run_model(tariff_value,no_of_households_value,stoptime):
+def run_model(tariff_value,no_of_households_value,stoptime,microgrid_capacity,failure_rate,no_of_components,farm_work_shift,baseline_household_demand,air_change_rate_daily,kitchen_volume,outdoor_concentration,primary_completion,lower_secondary_completion,upper_secondary_completion,employment_rate_baseline,dropout_rate_baseline,hourly_farm_wage,hourly_non_farm_wage,job_separation_rate,baseline_monthly_wage_men,baseline_monthly_wage_women,baseline_schooling,electrification_effect_men,electrification_effect_women):
     electrification_hybrid = ElectrificationHybrid(
         1, stoptime, dt=1, name="Electrification Hybrid",
         scheduler=SimultaneousScheduler(),
@@ -788,16 +835,34 @@ def run_model(tariff_value,no_of_households_value,stoptime):
             "tariff": {"type": "Double", "value": tariff_value},
             "subsidy": {"type": "Double", "value": 0.0},
             "no_of_households": {"type": "Double", "value": no_of_households_value},
-            "microgrid_capacity": {"type": "Double", "value": 1000000.0},#KW
+            "microgrid_capacity": {"type": "Double", "value": microgrid_capacity},#KW
             "cost_per_kwh": {"type": "Double", "value": tariff_value},
-            "initial_failure_rate": {"type": "Double", "value": 0.0147},
-            "no_of_components_initial_value": {"type": "Double", "value": 2.0},
-            "baseline_household_demand": {"type": "Double", "value": 200.0},#KW
-            "cost_per_repair": {"type": "Double", "value": 4000.0},
+            "initial_failure_rate": {"type": "Double", "value": failure_rate},
+            "no_of_components_initial_value": {"type": "Double", "value": no_of_components},
+            "baseline_household_demand": {"type": "Double", "value": baseline_household_demand},#KW
+            "cost_per_repair": {"type": "Double", "value": 40000.0},
             "operating_expenditures": {"type": "Double", "value": 3000.0},
             "initial_jobs": {"type": "Double", "value": 75.0},
             "social_cost_of_carbon":{"type": "Double", "value": 130.0},
-            "eta":{"type": "Double", "value": 0.4}
+            "eta":{"type": "Double", "value": 0.4},
+            "primary_completion":{"type": "Double", "value": primary_completion},
+            "lower_secondary_completion":{"type": "Double", "value": lower_secondary_completion},
+            "upper_secondary_completion":{"type": "Double", "value": upper_secondary_completion},
+            "employment_rate_baseline":{"type": "Double", "value": employment_rate_baseline},
+            "dropout_rate_baseline":{"type": "Double", "value": dropout_rate_baseline},
+            "hourly_farm_wage":{"type": "Double", "value": hourly_farm_wage},
+            "hourly_non_farm_wage":{"type": "Double", "value": hourly_non_farm_wage},
+            "job_separation_rate":{"type": "Double", "value": job_separation_rate},
+            "baseline_monthly_wage_men":{"type": "Double", "value": baseline_monthly_wage_men},
+            "baseline_monthly_wage_women":{"type": "Double", "value": baseline_monthly_wage_women},
+            "baseline_schooling":{"type": "Double", "value": baseline_schooling},
+            "electrification_effect_men":{"type": "Double", "value": electrification_effect_men},
+            "electrification_effect_women":{"type": "Double", "value": electrification_effect_women},
+            "farm_work_shift":{"type": "Double", "value": farm_work_shift},
+            "non_farm_work_shift":{"type": "Double", "value": 1.0 - farm_work_shift},
+            "air_change_rate_daily":{"type": "Double", "value": air_change_rate_daily},
+            "kitchen_volume":{"type": "Double", "value": kitchen_volume},
+            "outdoor_concentration":{"type": "Double", "value": outdoor_concentration}
         },
         "agents": [
             {"name": "household", "count": no_of_households_value}

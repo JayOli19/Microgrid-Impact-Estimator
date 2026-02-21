@@ -12,9 +12,10 @@ st.title("Microgrid Policy Dashboard")
 st.sidebar.header("Policy Parameters")
 
 tariff = st.sidebar.slider("Tariff ($/kWh)", 0.05, 0.50, 0.20)
-no_of_households = st.sidebar.slider("no_of_households", 100, 1000, 500)
-stoptime = st.sidebar.slider("stoptime", 20, 100, 180)
-#discount = st.sidebar.slider("Discount Rate", 0.0, 0.1, 0.05)
+no_of_households = st.sidebar.number_input("Number of Households", min_value=1, value=100)
+stoptime = st.sidebar.slider("stoptime", 20, 180, 120)
+farm_work_shift = st.sidebar.slider("Farm Work Shift", 0.0, 1.0, 0.5)
+microgrid_capacity = st.sidebar.number_input("Microgrid Capacity (kW)", min_value=1, value=1000000)
 
 # ========================
 # Run Model
@@ -24,10 +25,31 @@ if st.button("Run Simulation"):
     results = run_model(
         tariff_value=tariff,
         no_of_households_value=no_of_households,
-        stoptime=stoptime
+        stoptime=stoptime,
+        farm_work_shift=farm_work_shift,
+        microgrid_capacity=microgrid_capacity,
+        failure_rate=0.01,
+        no_of_components=2.0,
+        baseline_household_demand=200.0,
+        air_change_rate_daily=24.0,
+        kitchen_volume=30.0,
+        outdoor_concentration=1e-6,
+        primary_completion=0.9,
+        lower_secondary_completion=0.5,
+        upper_secondary_completion=0.3,
+        employment_rate_baseline=0.6,
+        dropout_rate_baseline=0.11,
+        hourly_farm_wage=2.0,
+        hourly_non_farm_wage=3.0,
+        job_separation_rate=0.05,
+        baseline_monthly_wage_men=100.0,
+        baseline_monthly_wage_women=80.0,
+        baseline_schooling=5.0,
+        electrification_effect_men=1.1,
+        electrification_effect_women=0.9
     )
     times = sorted(results.keys())
-    #st.write("Result keys:", list(results[times[0]].keys()))  # Debugging line to check keys in results
+    
     connected_series = [results[t].get("connected_count", 0) for t in times]
     appliance_demand_series = [results[t].get("appliance_demand", 0) for t in times]
     total_cases_series = [results[t].get("total_cases", 0) for t in times]
