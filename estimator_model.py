@@ -26,44 +26,44 @@ APPLIANCE_CATALOG = {#A catalog of electric appliances that households may adopt
         "beta_income": 0.0002,
         "beta_reliability": 0.5,
         "beta_social": 1.0,
-        "beta_cost": 0.001,
+        "beta_cost": 0.0025,
         "beta_tariff": 3.5
     },
     "tv": {
         "cost": 300,
-        "monthly_kwh": 5,
+        "monthly_kwh": 7.5,
         "beta_0": -2.0,
         "beta_income": 0.0002,
         "beta_reliability": 0.5,
         "beta_social": 1.0,
-        "beta_cost": 0.002,
+        "beta_cost": 0.003,
         "beta_tariff": 2.5
     },
     "electric_lighting": {
         "cost": 50,
-        "monthly_kwh": 3,
+        "monthly_kwh": 4,
         "beta_0": -1.8,
         "beta_income": 0.0004,
         "beta_reliability": 0.5,
         "beta_social": 1.0,
-        "beta_cost": 0.01,
+        "beta_cost": 0.02,
         "beta_tariff": 2.0
     }
 }
 
 FUEL_APPLIANCE_CATALOG = {#A catalog of fuel-based appliances that households may use, including their usage patterns, costs, and emission factors for PM2.5 and CO2.
     "lpg_stove": {
-        "hours_used": 2.5,
-        "fuel_used_hour": 0.5,
-        "cost_per_unit": 10, 
-        "fuel_emission_factor_pm25": 15, #g/L
+        "hours_used": 1.0, # hours per day
+        "fuel_used_hour": 0.2, # kilograms per hour
+        "cost_per_unit": 1.568, # cost per kilogram
+        "fuel_emission_factor_pm25": 0.45, #g/kg
         "fuel_emission_factor_co2": 2.98,
         "kitchen_fraction": 0.25
     },
     "kerosene_lamp": {
-        "hours_used": 5,
-        "fuel_used_hour": 0.5,
-        "cost_per_unit": 0.5, 
+        "hours_used": 4.0,
+        "fuel_used_hour": 0.06,
+        "cost_per_unit": 1.05, 
         "fuel_emission_factor_pm25": 10, #g/L
         "fuel_emission_factor_co2": 2.68,
         "kitchen_fraction": 0.3
@@ -72,14 +72,14 @@ FUEL_APPLIANCE_CATALOG = {#A catalog of fuel-based appliances that households ma
 
 # --- Household Agent ---
 class Household(Agent): #The Household class represents a household agent in the model, encapsulating its characteristics, behaviours, and interactions with the environment. It includes methods for initializing household members, making decisions about electrification and appliance adoption, calculating energy use and emissions, and assessing health impacts and social welfare.
-    def initialize(self):
+    def initialize(self): #Initializes the household agent by setting up its members, appliances, and other attributes.
         self.agent_type = "household"
         self.state = "unconnected" #The initial state of the household is set to "unconnected".
         self.members = []
-        self.members.append({"role":"man","employed":random.random()<0.7,"income":0,"exposure":0,"exposure_fraction":0.450,"age":random.randint(18, 59),"gender":"male"})
+        self.members.append({"role":"man","employed":random.random()<0.8,"income":0,"exposure":0,"exposure_fraction":0.450,"age":random.randint(18, 59),"gender":"male"})
         num_women = random.randint(1, 2)
         for _ in range(num_women):
-            self.members.append({"role":"woman","employed":random.random()<0.25,"income":0,"exposure":0,"exposure_fraction":0.628,"age":random.randint(18, 59),"gender":"female"})
+            self.members.append({"role":"woman","employed":random.random()<0.4,"income":0,"exposure":0,"exposure_fraction":0.628,"age":random.randint(18, 59),"gender":"female"})
         num_children = random.randint(0, 3)
         for _ in range(num_children):
             self.members.append({"role":"child","education_state":"","schooling":0.0,"income":0,"exposure":0,"exposure_fraction":0.742,"gender":random.choice(["male","female"]),"age":random.randint(0, 17), "employed":"False"})
@@ -161,21 +161,19 @@ class Household(Agent): #The Household class represents a household agent in the
         saved_hours_men = self.time_saved_men() #time saved from electrification that is dedicated to work
         saved_hours_women = self.time_saved_women() #time saved from electrification that is dedicated to work
         work_time_men = saved_hours_men * 0.4
-        leisure_time_men = saved_hours_men * 0.5
-        study_time_men = saved_hours_men * 0.1
         work_time_women = saved_hours_women * 0.4
-        leisure_time_women = saved_hours_women * 0.4
-        study_time_women = saved_hours_women * 0.2
         error_term = random.uniform(-0.0008, 0.0008) # random error term to reflect unobserved factors affecting employment
         employment_rate_baseline = annual_to_monthly(employment_rate_baseline)
         employment_rate_women_connected = annual_to_monthly(employment_rate_baseline+0.09)#Assumes a 9 percentage point increase in employment rate for women due to electrification
        
-        job_separation_rate = annual_to_monthly(job_separation_rate)
+        job_separation = annual_to_monthly(job_separation_rate)
         
         working_days = 20 # number of working days in a month        
 
         for m in self.members:
             m["age"] += (1/12)
+            if self.total_income() > 350.0: #Assumes that if the household income exceeds $350, the dropout rate for children decreases by a certain percentage due to improved financial stability.
+                dropout_rate_baseline *= 0.8
             if self.state == "connected":
                 dropout_rate = annual_to_monthly(dropout_rate_baseline*(1-dropout_reduction_rate)) #assumes electrification reduces dropout rate
             else:
@@ -253,7 +251,7 @@ class Household(Agent): #The Household class represents a household agent in the
 
         # Job separation process
         for m in self.members:
-            if m["employed"] and random.random()<job_separation_rate:
+            if m["employed"] and random.random()<job_separation:
                 m["employed"] = False
                 m["income"] = 0
                 available_jobs += 1
@@ -281,12 +279,11 @@ class Household(Agent): #The Household class represents a household agent in the
     def total_men(self): #Calculates the total number of adult male members in the household.
         return sum(1 for m in self.members if m["gender"] == "male" and m["age"] >= 18)
     
-    def total_schooling(self): #Calculates the total years of schooling for all child members.
-        return sum(m.get("schooling",0) for m in self.members if m["role"]=="child")
+    def total_schooling(self): #Calculates the total years of schooling for all child members over the age of 18.
+        return sum(m.get("schooling",0) for m in self.members if m["role"]=="child" and m["age"] >= 18)
     
-    def total_children(self): #Calculates the total number of child members in the household.
-        return sum(1 for m in self.members if m["role"]=="child")
-        
+    def total_adult_children(self): #Calculates the total number of child members in the household who are over the age of 18.
+        return sum(1 for m in self.members if m["role"]=="child" and m["age"] >= 18)
 
     def consider_appliance_adoption(self, reliability, social_influence,cost_per_kwh,subsidy_rate):
         income = self.total_income()
@@ -295,7 +292,7 @@ class Household(Agent): #The Household class represents a household agent in the
 
             if self.electric_appliances[name]:
                 continue  # already owned
-            if name != "TV":
+            if name != "tv": #Assumes that the electric cooker and electric lighting are subsidized, while the TV is not subsidized.
                 appliance_utility = (
                      a["beta_income"] * income
                     + a["beta_reliability"] * reliability
@@ -378,11 +375,7 @@ class Household(Agent): #The Household class represents a household agent in the
     def co2_emissions_initial(self):#Calculates the initial total monthly CO2 emissions for the household, assuming that all fuel-based appliances are in use and no electric appliances have been adopted.
         total_co2_emissions = 0.0
         for name, a in FUEL_APPLIANCE_CATALOG.items():
-            if self.fuel_appliances[name]:# If the household is still using the fuel appliance, calculate the monthly CO2 emissions.
-                co2_emissions = a["hours_used"]*a["fuel_used_hour"]*a["fuel_emission_factor_co2"] * 30
-            else:
-                co2_emissions = 0.0
-        
+            co2_emissions = a["hours_used"]*a["fuel_used_hour"]*a["fuel_emission_factor_co2"] * 30
             total_co2_emissions += co2_emissions
         return total_co2_emissions
 
@@ -408,7 +401,7 @@ class Household(Agent): #The Household class represents a household agent in the
         
         return pm25_concentration
 
-    def pm25_concentration_baseline(self,air_change_rate_daily,kitchen_volume,outdoor_concentration):
+    def pm25_concentration_baseline(self,air_change_rate_daily,kitchen_volume,outdoor_concentration):#Calculates the baseline indoor PM2.5 concentration in the household, assuming that all fuel-based appliances are in use and no electric appliances have been adopted. This serves as a reference point for assessing the health impacts of electrification and appliance adoption.
 
         weighted_fraction = 0.0
         total_emissions_baseline = 0.0
@@ -468,51 +461,66 @@ class Household(Agent): #The Household class represents a household agent in the
         return demand
 
 
-    def utility_function(self,eta): #Calculates the utility for the household based on its total income and a given inequality aversion parameter (eta), using a constant relative risk aversion (CRRA) utility function.
-        income = self.total_income()
-        household_utility = (income**(1-eta))/(1-eta)
-        return household_utility
-
-    def impact_score(self,air_change_rate_daily, kitchen_volume, outdoor_concentration,cost_per_kwh): #Calculates an overall impact score for the household based on improvements in income, health, CO2 emissions, and cost savings compared to the baseline scenario.
+    def impact_score(self,air_change_rate_daily, kitchen_volume, outdoor_concentration,baseline_schooling,average_income_men): #Calculates an overall impact score for the household based on improvements in income, health, CO2 emissions, and cost savings compared to the baseline scenario.
         cases_baseline = self.baseline_cases(air_change_rate_daily, kitchen_volume, outdoor_concentration)
         cases = self.cases(air_change_rate_daily, kitchen_volume, outdoor_concentration)
-        cost_savings = (self.baseline_fuel_cost() - self.energy_cost(cost_per_kwh))/self.baseline_fuel_cost() if self.baseline_fuel_cost() > 0 else 0 #Calculates the cost savings from electrification as the percentage reduction in energy costs compared to the baseline fuel costs.
         health_improvement = (cases_baseline - cases)/cases_baseline if cases_baseline > 0 else 0 #Calculates the improvement in health outcomes as the percentage reduction in IHD cases attributable to PM2.5 exposure compared to the baseline scenario.
-        initial_income = self.initial_income()
-        income = self.total_income()
-        income_improvement = (income - initial_income)/initial_income if initial_income > 0 else 0 #Calculates the improvement in income as the percentage increase in total household income compared to the initial income before electrification.
         initial_co2_emissions = self.co2_emissions_initial()
         current_co2_emissions = self.co2_emissions()
         co2_reduction = (initial_co2_emissions - current_co2_emissions)/initial_co2_emissions if initial_co2_emissions > 0 else 0
-
-        impact_score = (income_improvement * 0.3) + (health_improvement * 0.3) + (co2_reduction * 0.3) + (cost_savings * 0.1)
+        average_schooling = self.total_schooling() / self.total_adult_children() if self.total_adult_children() > 0 else 0
+        education_improvement = (average_schooling - baseline_schooling)/(12-baseline_schooling) if baseline_schooling > 0 else 0
+        average_household_income_women = self.income_women()/self.total_women() if self.total_women() > 0 else 0
+        average_household_income_men = self.income_men()/self.total_men() if self.total_men() > 0 else 0
+        if average_schooling < baseline_schooling:
+            education_improvement = 0.0
+        if self.total_men() == 0: # If there are no men in the household,compare the females' income to the overall average income of men in the community
+            gender_wage_gap = (1 - ((average_income_men - average_household_income_women) / (average_income_men))) if average_household_income_men > 0 else 0
+        else:
+            gender_wage_gap = (1 - ((average_household_income_men - average_household_income_women) / (average_household_income_men))) if average_household_income_men > 0 else 0
+        impact_score =  (health_improvement * 0.3) + (co2_reduction * 0.3)  + (education_improvement * 0.2) + (gender_wage_gap*0.2) # Calculates the overall impact score as a weighted sum of the improvements in health, CO2 emissions, and education, gender wage gap with weights of 0.3, 0.3, and 0.2, 0.2 respectively.
         return impact_score
+    
+    def utility_function(self,eta,air_change_rate_daily, kitchen_volume, outdoor_concentration, baseline_schooling,average_income_men): #Calculates the utility for the household based on its total income and a given inequality aversion parameter (eta), using a constant relative risk aversion (CRRA) utility function.
+        income = self.total_income()
+        if eta != 1:
+            income_utility = (income**(1-eta))/(1-eta)
+        else:
+            income_utility = math.log(income+1)
+        impact_score = self.impact_score(air_change_rate_daily, kitchen_volume, outdoor_concentration, baseline_schooling,average_income_men)
+        utility_score = impact_score * income_utility
+        return utility_score
 
     def consider_microgrid_adoption(self, reliability, social_influence,cost_per_kwh,air_change_rate_daily, kitchen_volume, outdoor_concentration):
-        alpha_income = 0.08 #The weight assigned to income in the utility function.
+        alpha_income = 0.001 #The weight assigned to income in the utility function.
         alpha_reliability = 0.5#The weight assigned to the reliability of the electricity supply in the utility function.
         alpha_health = 0.1 #The weight assigned to health improvements from reduced PM2.5 exposure in the utility function.
         alpha_social = 0.2 #The weight assigned to social influence from neighbours who have already connected to the microgrid in the utility function.
-        alpha_savings = 0.5 #The weight assigned to cost savings from switching to electricity compared to fuel costs in the utility function.
+        alpha_savings = 1.0 #The weight assigned to cost savings from switching to electricity compared to fuel costs in the utility function.
         aversion_to_adoption = -3.5 #A baseline aversion to adopting the microgrid, representing factors such as uncertainty, risk aversion, or attachment to traditional energy sources that may make households hesitant to connect.
         k = 0.8  # sensitivity parameter for adoption probability
-        reliability_penalty = -2.0 if reliability < 0.8 else 0.0 #A penalty applied to the utility if the reliability of the electricity supply is below a certain threshold, reflecting the negative impact of unreliable electricity on the household's willingness to adopt the microgrid.
+        reliability_penalty = -1.4 if reliability < 0.8 else 0.0 #A penalty applied to the utility if the reliability of the electricity supply is below a certain threshold, reflecting the negative impact of unreliable electricity on the household's willingness to adopt the microgrid.
         income = self.total_income()
         cases_baseline = self.baseline_cases(air_change_rate_daily, kitchen_volume, outdoor_concentration)
         cases = self.cases(air_change_rate_daily, kitchen_volume, outdoor_concentration)
         health_improvement = (cases_baseline - cases)/cases_baseline if cases_baseline > 0 else 0
-        cost_savings = (self.baseline_fuel_cost() - self.energy_cost(cost_per_kwh))/self.baseline_fuel_cost() if self.baseline_fuel_cost() > 0 else 0
-
-        utility = (
-                alpha_income * math.log2(income if income>0 else 1)
+        cost_savings = (self.baseline_fuel_cost() - self.energy_cost(cost_per_kwh))/(self.baseline_fuel_cost()) if self.baseline_fuel_cost() > 0 else 0
+        price_penalty = 0.0
+        if cost_savings < 0:
+            cost_savings = 0.0
+            price_penalty = -1.0 #A penalty applied to the utility if the cost savings from switching to electricity are negative, reflecting the negative impact of higher costs on the household's willingness to adopt the microgrid.
+    
+        microgrid_utility = (
+                alpha_income * income
                 + alpha_reliability * reliability
                 + alpha_social * social_influence
                 + alpha_health * health_improvement
                 + alpha_savings * cost_savings
                 + reliability_penalty
+                + price_penalty
             )
         
-        microgrid_adoption_prob = 1 / (1 + math.exp(-(aversion_to_adoption + k*utility)))
+        microgrid_adoption_prob = 1 / (1 + math.exp(-(aversion_to_adoption + k*microgrid_utility)))
         
         if random.random() < microgrid_adoption_prob:
             self.electrify()            
@@ -523,29 +531,27 @@ class ElectrificationSD:
     def __init__(self, model): #The constructor for the ElectrificationSD class initializes the stocks, flows, converters, and constants of the SD model.
         self.model = model
 
-        # Stocks
-        self.households_not_connected = model.stock("households_not_connected")
+        # Initialization of Stocks
         self.net_microgrid_income = model.stock("net_microgrid_income")
         self.no_of_failures = model.stock("no_of_failures")
-        self.no_of_components = model.stock("no_of_components")
+        self.no_of_working_components = model.stock("no_of_working_components")
         self.no_of_current_repairs = model.stock("no_of_current_repairs")
         self.available_jobs = model.stock("available_jobs")
         self.discounted_social_welfare_function = model.stock("discounted_social_welfare_function")
-       
         
-        # Flows
-        self.household_microgrid_adoption = model.flow("household_microgrid_adoption")
+        # Initialization of Flows
         self.microgrid_income = model.flow("microgrid_income")
         self.microgrid_expenditures = model.flow("microgrid_expenditures")
         self.microgrid_income_flow = model.flow("microgrid_income_flow")
         self.failure_rate = model.flow("failure_rate")
-        self.fixture_rate = model.flow("fixture_rate")
+        #self.fixture_rate = model.flow("fixture_rate")
         self.job_creation = model.flow("job_creation")
         self.social_welfare_function = model.flow("social_welfare_function")
-        self.carbon_cost = model.flow("carbon_cost")
         self.employment_change = model.flow("employment_change")
+        self.current_working_components = model.flow("current_working_components")
+        self.previous_working_components = model.flow("previous_working_components")
 
-        # Converters
+        # Initialization of Converters
         self.households_connected = model.converter("households_connected")
         self.adopting_households = model.converter("adopting_households")
         self.power_use = model.converter("power_use")
@@ -553,20 +559,12 @@ class ElectrificationSD:
         self.mttr = model.converter("mttr")
         self.saifi = model.converter("saifi")
         self.saidi = model.converter("saidi")
-        self.no_of_customers = model.converter("no_of_customers")
+        self.availability = model.converter("availability")
         self.downtime = model.converter("downtime")
         self.reliability = model.converter("reliability")
-        self.social_influence_microgrid = model.converter("social_influence_microgrid")
         self.baseline_demand = model.converter("baseline_demand")
         self.total_demand = model.converter("total_demand")
-        self.cost_savings = model.converter("cost_savings")
-        self.total_energy_cost = model.converter("energy_cost")
-        self.baseline_fuel_cost = model.converter("baseline_fuel_cost")
-        self.co2_emissions = model.converter("co2_emissions")
-        self.total_cases = model.converter("total_cases")        
-        self.baseline_cases = model.converter("baseline_cases")
-        self.health_improvements = model.converter("health_improvements")
-        self.employment = model.converter("employment")
+
         self.business_income = model.converter("business_income")
         self.capital_investment = model.converter("capital_investment")
         self.load_ratio = model.converter("load_ratio")
@@ -574,13 +572,13 @@ class ElectrificationSD:
 
 
         # Aggregate social/economic flows and converters
-        self.changes_in_jobs = model.flow("changes_in_jobs")
+        self.changes_in_jobs = model.converter("changes_in_jobs")
         self.avg_income = model.converter("avg_income")
         self.appliance_demand = model.converter("appliance_demand")
         self.utility_sum = model.converter("utility_sum")
         
 
-        #Constants
+        # Initialization of Constants
         self.baseline_household_demand = model.constant("baseline_household_demand")
         self.no_of_households = model.constant("no_of_households")
         self.microgrid_capacity = model.constant("microgrid_capacity")
@@ -588,27 +586,25 @@ class ElectrificationSD:
         self.cost_per_kwh = model.constant("cost_per_kwh")
         self.cost_per_repair = model.constant("cost_per_repair")
         self.operating_expenditures = model.constant("operating_expenditures")
-        self.no_of_components_initial_value = model.constant("no_of_components_initial_value")
+        self.no_of_components = model.constant("no_of_components")
         self.attrition_rate = model.constant("attrition_rate")
         self.mpc = model.constant("mpc") #The marginal propensity to consume (MPC) represents the proportion of additional income that households are expected to spend on consumption.
         self.local_spending_fraction = model.constant("local_spending_fraction") #The local spending fraction represents the proportion of household spending that is expected to be directed towards local businesses and services.
         self.investment_rate = model.constant("investment_rate")#The investment rate represents the proportion of business income that is expected to be reinvested in the local economy, contributing to economic growth and job creation.
         self.job_creation_efficiency = model.constant("job_creation_efficiency")
         self.initial_jobs = model.constant("initial_jobs")
-        self.social_cost_of_carbon = model.constant("social_cost_of_carbon")
         self.eta = model.constant("eta")
+        self.discount_rate = model.constant("discount_rate")
+        self.capacity_factor = model.constant("capacity_factor")
 
         # Equations
-        self.social_influence_microgrid.equation = self.households_connected/self.no_of_households
-        self.household_microgrid_adoption.equation = self.households_not_connected - self.households_connected
-        self.households_not_connected.equation = -self.household_microgrid_adoption
         self.baseline_demand.equation = ((self.baseline_household_demand) * self.households_connected)
-        self.total_demand.equation = self.baseline_demand+self.appliance_demand
-        self.power_use.equation = sd.min(self.total_demand,self.microgrid_capacity)
+        self.total_demand.equation = (self.baseline_demand+self.appliance_demand)
+        self.power_use.equation = sd.min(self.total_demand,(self.microgrid_capacity*720.0*self.capacity_factor))
         self.microgrid_income_flow.equation = self.power_use * self.cost_per_kwh
-        self.microgrid_expenditures.equation = ((self.failure_rate - self.fixture_rate)*self.cost_per_repair) + self.operating_expenditures
+        self.microgrid_expenditures.equation = (self.no_of_failures*self.cost_per_repair) + self.operating_expenditures
         self.net_microgrid_income.equation = self.microgrid_income_flow - self.microgrid_expenditures
-        self.load_ratio.equation = self.total_demand / sd.max(1, self.microgrid_capacity)
+        self.load_ratio.equation = self.total_demand / sd.max(1, self.microgrid_capacity*720.0*self.capacity_factor)
         self.income_ratio.equation = self.microgrid_income_flow / self.operating_expenditures
         self.mttr.equation = sd.lookup( #The mean time to repair (MTTR) is determined by looking up the income ratio in a predefined table.
             self.income_ratio,
@@ -619,13 +615,13 @@ class ElectrificationSD:
             self.load_ratio,
             [[0.3, 0.6], [0.5, 0.8], [0.7, 1], [0.8, 1.2],[0.9, 1.6],[1.0, 2.5],[1.1, 4], [1.2, 7]]
         )
-        self.failure_rate.equation = self.initial_failure_rate*self.no_of_components*self.failure_rate_multiplier
+        self.failure_rate.equation = self.initial_failure_rate * self.no_of_working_components * self.failure_rate_multiplier
         self.no_of_failures.equation = self.failure_rate
-        self.fixture_rate.equation = self.no_of_current_repairs/self.mttr
-        #number of components stock
-        self.no_of_components.equation = self.fixture_rate - self.failure_rate
-        #number of components being repaired
-        self.no_of_current_repairs.equation = self.failure_rate - self.fixture_rate
+        self.availability.equation = (1/self.failure_rate)/sd.max(1e-3, (1/self.failure_rate)+(self.mttr))
+        #number of working components
+        self.current_working_components.equation = self.no_of_components*self.availability
+        self.previous_working_components.equation = self.no_of_working_components
+        self.no_of_working_components.equation = self.current_working_components - self.previous_working_components
         # Failure rate depends on maintenance delay
         self.downtime.equation = self.mttr * self.no_of_failures
         # SAIDI (interruptions per customer)
@@ -635,9 +631,6 @@ class ElectrificationSD:
         # Reliability improves as SAIDI decreases
         self.reliability.equation = 1/(1+0.25*self.saidi)
 
-        self.cost_savings.equation = 1 - (self.total_energy_cost/self.baseline_fuel_cost)
-        self.health_improvements.equation = 1 - (self.total_cases/self.baseline_cases)
-
         # Impact of Income on spending, business investment and job creation
         self.business_income.equation = self.mpc * self.local_spending_fraction * self.avg_income
         self.capital_investment.equation = self.investment_rate * self.business_income
@@ -645,28 +638,26 @@ class ElectrificationSD:
         self.employment_change.equation = self.changes_in_jobs
         self.available_jobs.equation = self.job_creation + self.employment_change
         # Utility function and social welfare
-        self.social_welfare_function.equation = self.utility_sum*sd.exp(-4.074e-3*sd.time())
-        self.carbon_cost.equation = self.co2_emissions*self.social_cost_of_carbon*0.00110231*sd.exp(-4.074e-3*sd.time())
-        self.discounted_social_welfare_function.equation = (self.social_welfare_function - self.carbon_cost)#*sd.exp(-4.074e-3*sd.time())
+        self.social_welfare_function.equation = self.utility_sum*sd.exp(-self.discount_rate*sd.time())
+        self.discounted_social_welfare_function.equation = self.social_welfare_function
                
 
         # Initial values
         self.households_connected.initial_value = 0.0
-        self.households_not_connected.initial_value = self.no_of_households
-        self.cost_per_repair.equation = 50000.0
-        self.operating_expenditures.equation = 100000.0
+        self.operating_expenditures.equation = 5000.0
         self.initial_failure_rate.equation = 0.1
         self.no_of_failures.initial_value = 0.0
-        self.no_of_components_initial_value.equation = 2.0
-        self.no_of_components.initial_value = self.no_of_components_initial_value
+        self.no_of_components.equation = 2.0
+        self.no_of_working_components.initial_value = self.no_of_components
         self.no_of_current_repairs.initial_value = 0.0
         self.available_jobs.initial_value = self.initial_jobs
-        self.initial_jobs.equation = 75
-        self.mpc.equation = 0.75
+        self.initial_jobs.equation = 75.0
+        self.mpc.equation = 0.7
         self.local_spending_fraction.equation = 0.6
-        self.investment_rate.equation = 0.15
+        self.investment_rate.equation = 0.1
         self.job_creation_efficiency.equation = 4.074e-3
-        self.social_cost_of_carbon.equation = 130.0 # in USD per metric ton of CO2
+        self.discount_rate.equation = 4.074e-3
+        self.capacity_factor.equation = 0.8
 
 
 # --- Hybrid Model ---
@@ -683,14 +674,12 @@ class ElectrificationHybrid(Model): #The constructor for the ElectrificationHybr
         self.sd_model.microgrid_capacity.equation = self.microgrid_capacity
         self.sd_model.cost_per_kwh.equation = self.cost_per_kwh
         self.sd_model.initial_failure_rate.equation = self.initial_failure_rate
-        self.sd_model.no_of_components_initial_value.equation = self.no_of_components_initial_value
+        self.sd_model.no_of_components.equation = self.no_of_components
         self.sd_model.baseline_household_demand.equation = self.baseline_household_demand
         self.sd_model.cost_per_repair.equation = self.cost_per_repair
         self.sd_model.operating_expenditures.equation = self.operating_expenditures
         self.sd_model.initial_jobs.equation = self.initial_jobs
-        self.sd_model.social_cost_of_carbon.equation = self.social_cost_of_carbon
         self.sd_model.eta.equation = self.eta
-        
 
 
     def begin_round(self, time, sim_round, income_and_employment): #The begin_round method is called at the beginning of each simulation round to update the states of the agents and aggregate outcomes.
@@ -698,7 +687,7 @@ class ElectrificationHybrid(Model): #The constructor for the ElectrificationHybr
         # begin_round
         available_jobs = int(self.sd_model.available_jobs(time))
         reliability = self.sd_model.reliability(time)
-        social_influence = self.sd_model.social_influence_microgrid(time)
+        social_influence = self.sd_model.households_connected(time)/self.no_of_households if self.no_of_households > 0 else 0
         cost_per_kwh = self.cost_per_kwh
         eta = self.eta
         subsidy_rate = self.subsidy_rate
@@ -728,7 +717,6 @@ class ElectrificationHybrid(Model): #The constructor for the ElectrificationHybr
                 h.co2_emissions_initial() #initialize CO2 emissions for the first round
                 
             baseline_cases = sum(h.baseline_cases(air_change_rate_daily,kitchen_volume,outdoor_concentration) for h in self.agents)
-            self.sd_model.baseline_cases.equation = baseline_cases
         for h in self.agents:
             if h.state != "connected" and time%3==0: #household considers microgrid adoption every 3 months
                 h.consider_microgrid_adoption(reliability, social_influence,cost_per_kwh,air_change_rate_daily, kitchen_volume, outdoor_concentration)
@@ -743,25 +731,19 @@ class ElectrificationHybrid(Model): #The constructor for the ElectrificationHybr
         connected_count = sum(1 for h in self.agents if h.state == "connected")
         avg_income = sum(h.total_income() for h in self.agents) / len(self.agents) if len(self.agents) > 0 else 0
         appliance_demand = sum(h.appliance_demand() for h in self.agents)
-        baseline_fuel_cost = sum(h.baseline_fuel_cost () for h in self.agents)
-        social_welfare_function = sum(h.utility_function (eta) for h in self.agents)
-        total_energy_cost = sum(h.energy_cost(cost_per_kwh) for h in self.agents)
         co2_emissions = sum(h.co2_emissions() for h in self.agents)
         total_cases = sum(h.cases(air_change_rate_daily,kitchen_volume,outdoor_concentration) for h in self.agents)
-        average_schooling = sum(h.total_schooling() for h in self.agents)/sum(h.total_children() for h in self.agents) if sum(h.total_children() for h in self.agents) > 0 else 0
-        impact_score = sum(h.impact_score(air_change_rate_daily, kitchen_volume, outdoor_concentration,cost_per_kwh) for h in self.agents)/len(self.agents) if len(self.agents) > 0 else 0
         average_income_women = sum(h.income_women() for h in self.agents)/sum(h.total_women() for h in self.agents) if sum(h.total_women() for h in self.agents) > 0 else 0
         average_income_men = sum(h.income_men() for h in self.agents)/sum(h.total_men() for h in self.agents) if sum(h.total_men() for h in self.agents) > 0 else 0
-
+        average_schooling = sum(h.total_schooling() for h in self.agents)/sum(h.total_adult_children() for h in self.agents) if sum(h.total_adult_children() for h in self.agents) > 0 else 0
+        impact_score = sum(h.impact_score(air_change_rate_daily, kitchen_volume, outdoor_concentration,baseline_schooling,average_income_men) for h in self.agents)/len(self.agents) if len(self.agents) > 0 else 0
+        social_welfare_function = sum(h.utility_function (eta,air_change_rate_daily, kitchen_volume, outdoor_concentration, baseline_schooling,average_income_men) for h in self.agents)
+        
         # Feed back into SD converters
         self.sd_model.households_connected.equation = connected_count
         self.sd_model.avg_income.equation = avg_income
         self.sd_model.appliance_demand.equation = appliance_demand
-        self.sd_model.total_energy_cost.equation = total_energy_cost
-        self.sd_model.baseline_fuel_cost.equation = baseline_fuel_cost
-        self.sd_model.total_cases.equation = total_cases
         self.sd_model.utility_sum.equation = social_welfare_function
-        self.sd_model.co2_emissions.equation = co2_emissions
         self.sd_model.changes_in_jobs.equation = total_job_changes
         employment = sum(
         1 for h in self.agents
@@ -769,13 +751,13 @@ class ElectrificationHybrid(Model): #The constructor for the ElectrificationHybr
         if m["employed"]
         )
 
-        self.sd_model.employment.equation = employment
 
 
         if time not in self.custom_stats:
             self.custom_stats[time] = {}
 
         self.custom_stats[time]["connected_count"] = connected_count
+        self.custom_stats[time]["not_connected_count"] = self.no_of_households - connected_count
         self.custom_stats[time]["appliance_demand"] = appliance_demand
         self.custom_stats[time]["total_cases"] = total_cases
         self.custom_stats[time]["avg_income"] = avg_income
@@ -793,7 +775,10 @@ class ElectrificationHybrid(Model): #The constructor for the ElectrificationHybr
         self.custom_stats[time]["average_income_women"] = average_income_women
         self.custom_stats[time]["average_income_men"] = average_income_men
         self.custom_stats[time]["impact_score"] = impact_score
-        
+        self.custom_stats[time]["microgrid_net_income"] = self.sd_model.net_microgrid_income(time)
+        self.custom_stats[time]["power_use"] = self.sd_model.power_use(time)
+        self.custom_stats[time]["no_of_current_working_components"] = self.sd_model.no_of_working_components(time)
+        self.custom_stats[time]["available_jobs"] = self.sd_model.available_jobs(time)
 
         
 # --- Simulation Setup ---
@@ -818,13 +803,12 @@ def run_impact_estimator_model(tariff_value,subsidy_rate,no_of_households_value,
             "microgrid_capacity": {"type": "Double", "value": microgrid_capacity},#KW
             "cost_per_kwh": {"type": "Double", "value": tariff_value},
             "initial_failure_rate": {"type": "Double", "value": failure_rate},
-            "no_of_components_initial_value": {"type": "Double", "value": no_of_components},
+            "no_of_components": {"type": "Double", "value": no_of_components},
             "baseline_household_demand": {"type": "Double", "value": baseline_household_demand},#KW
-            "cost_per_repair": {"type": "Double", "value": 40000.0},
-            "operating_expenditures": {"type": "Double", "value": 10000.0},
+            "cost_per_repair": {"type": "Double", "value": 1000.0},
+            "operating_expenditures": {"type": "Double", "value": 5000.0},
             "initial_jobs": {"type": "Double", "value": 75.0},
-            "social_cost_of_carbon":{"type": "Double", "value": 130.0},
-            "eta":{"type": "Double", "value": 0.4},
+            "eta":{"type": "Double", "value": 1.0},
             "primary_completion":{"type": "Double", "value": primary_completion},
             "lower_secondary_completion":{"type": "Double", "value": lower_secondary_completion},
             "upper_secondary_completion":{"type": "Double", "value": upper_secondary_completion},
@@ -852,4 +836,4 @@ def run_impact_estimator_model(tariff_value,subsidy_rate,no_of_households_value,
   
     electrification_hybrid.configure(electrification_config)
     electrification_hybrid.run()
-    return electrification_hybrid.custom_stats.copy()
+    return electrification_hybrid.custom_stats.copy()#The function run_impact_estimator_model sets up and runs the electrification hybrid model with the specified parameters, and returns the custom statistics collected during the simulation.
