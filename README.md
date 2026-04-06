@@ -63,7 +63,7 @@ results = run_impact_estimator_model(...)
 It runs the python script “estimator_model.py” which contains the backend impact estimator model and returns a dictionary of estimated social, technical and environmental impacts and indicators for every step.
 This can be integrated into a dashboard to analyse and present the estimations.
 
-Due to the probabilistic nature of the model, it is good practice to run the simulation multiple time and take an average.
+Due to the probabilistic nature of the model, it is good practice to run the simulation multiple times and take an average.
 The model can be used to perform the follwing:
 - Comparing tariffs, subsidies, and capacity
 - Reliability stress testing
