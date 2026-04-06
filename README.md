@@ -81,9 +81,12 @@ streamlit run main.py
 ```
 The dashboard allows users to select that number of times to run the scenario before being averaged by adjusting the “Runs per Scenario” slider.
 
+
 ## Limitations
 - Model outputs are scenario-based estimates, not precise forecasts
 - The model assumes no prior appliance ownership and completion appliance substitution which may not be realistic
 - Tariffs, subsidies, grid reliability, and social influence dynamics are assumed to be homogenous
 - Some nonlinear relationships are approximated using lookup tables
 
+## Author(s)
+- Jayden Oliver @JayOli19
