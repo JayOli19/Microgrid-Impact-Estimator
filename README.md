@@ -51,3 +51,39 @@ Adoption dynamics are based on a **Logit Adoption Model** which accounts for sys
 Example:
 ```bash
 pip install -r requirements.txt
+```
+---
+
+## Running the Model
+
+The backend has a single-entry point which is the "run_impact_estimator_model()" function.
+```python
+results = run_impact_estimator_model(...)
+```
+It runs the python script “estimator_model.py” which contains the backend impact estimator model and returns a dictionary of estimated social, technical and environmental impacts and indicators for every step.
+This can be integrated into a dashboard to analyse and present the estimations.
+
+Due to the probabilistic nature of the model, it is good practice to run the simulation multiple time and take an average.
+The model can be used to perform the follwing:
+- Comparing tariffs, subsidies, and capacity
+- Reliability stress testing
+- Monte Carlo averaging
+- Sensitivity analysis on key parameters
+
+
+## Streamlit Dashboard
+A prototype dashboard was developed using Streamlit. The dashboard allows users to input policy levers (e.g. tariffs and subsidies), microgrid and community factors (e.g. grid capacity and the number of households), and behavioural responses (e.g. the fraction women that move into farm work). Users can then run various scenarios and compare graphs of the estimated outputs which include the number of households connected, the social, technical, and environmental impact indicators, the composite impact scores, and the DSWF.
+
+The code for the dashboard is in the "main.py" script. To launch the dashboard use the following command:
+
+```bash
+streamlit run main.py
+```
+The dashboard allows users to select that number of times to run the scenario before being averaged by adjusting the “Runs per Scenario” slider.
+
+## Limitations
+- Model outputs are scenario-based estimates, not precise forecasts
+- The model assumes no prior appliance ownership and completion appliance substitution which may not be realistic
+- Tariffs, subsidies, grid reliability, and social influence dynamics are assumed to be homogenous
+- Some nonlinear relationships are approximated using lookup tables
+
