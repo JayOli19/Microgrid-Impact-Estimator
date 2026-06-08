@@ -92,6 +92,42 @@ class Household(Agent): #The Household class represents a household agent in the
         for name in APPLIANCE_CATALOG:
             self.electric_appliances[name] = False
 
+    def birth_process(self, baseline_fertility_rate, fertility_reduction_rate):
+
+
+        # Convert annual fertility to monthly
+        monthly_fertility = 1 - (1 - baseline_fertility_rate) ** (1 / 12)
+
+        for m in self.members:
+            if m["gender"] == "female" and 18 <= m["age"] <= 45:
+                fertility = monthly_fertility
+
+                # Electrification reduces fertility
+                if self.state == "connected":
+                    fertility *= (1 - fertility_reduction_rate)
+
+                if random.random() < fertility:
+                    self.members.append({"role":"child","education_state":"","schooling":0.0,"income":0,"exposure":0,"exposure_fraction":0.742,"gender":random.choice(["male","female"]),"age":random.randint(0, 17), "employed":"False"})
+
+    def death_process(self,baseline_mortality_rate,child_multiplier,elderly_multiplier):
+    
+        survivors = []
+
+        for m in self.members:
+            mortality = baseline_mortality_rate
+
+            if m["age"] < 5:
+                mortality *= child_multiplier
+            elif m["age"] >= 60:
+                mortality *= elderly_multiplier
+
+            # Convert annual mortality to monthly
+            monthly_mortality = 1 - (1 - mortality) ** (1 / 12)
+
+            if random.random() > monthly_mortality:
+                survivors.append(m)
+
+        self.members = survivors
 
     def electrify(self):#Changes the state of the household to "connected".
         self.state = "connected"
@@ -443,6 +479,11 @@ class Household(Agent): #The Household class represents a household agent in the
         baseline_incidence = DISEASE_PARAMS["baseline_incidence"] # number of cases per month
         total_cases = 0.0
         for member in self.members:
+            if member["role"] == "child":
+                if member["age"] >=18 and member["gender"] == "male": #Male children receive the exposure fraction for men after age 18
+                    member["exposure_fraction"] = 0.450
+                elif member["age"] >=18 and member["gender"] == "female": #Female children receive the exposure fraction for women after age 18
+                    member["exposure_fraction"] = 0.628
             member["exposure"] = member["exposure_fraction"]*concentration*1e6 # the individual exposure is a fraction of the concentration in the house. Scaled from g/m3 to ug/m3
             excess = max(0.0, member["exposure"] - c0)#Calculates the excess exposure above the counterfactual concentration (c0) for the member, which is used to determine the relative risk of IHD associated with their PM2.5 exposure.
             RR = 1 + alpha * (1 - math.exp(-gamma * (excess ** delta)))# Relative risk
@@ -709,6 +750,13 @@ class ElectrificationHybrid(Model): #The constructor for the ElectrificationHybr
         kitchen_volume = self.kitchen_volume
         outdoor_concentration = self.outdoor_concentration
         dropout_reduction_rate = self.dropout_reduction_rate
+        # Demographic parameters
+        self.baseline_fertility_rate = 0.08      # annual probability per adult woman
+        self.fertility_reduction_rate = 0.3      # reduction when electrified
+
+        self.baseline_mortality_rate = 0.01      # annual base mortality
+        self.child_mortality_multiplier = 2.0
+        self.elderly_mortality_multiplier = 3.0
         total_job_changes = 0.0
         if time == self.starttime: #At the start of the simulation, it initializes the schooling, income, and CO2 emissions for each household agent, and calculates the baseline number of IHD cases attributable to PM2.5 exposure.
             for h in self.agents:
@@ -723,6 +771,18 @@ class ElectrificationHybrid(Model): #The constructor for the ElectrificationHybr
             job_changes = h.income_and_employment(available_jobs,employment_rate_baseline,hourly_farm_wage,hourly_non_farm_wage,job_separation_rate, dropout_rate_baseline,baseline_monthly_wage_men,baseline_monthly_wage_women,baseline_schooling,electrification_effect_men,electrification_effect_women,farm_work_shift,dropout_reduction_rate)
             available_jobs += job_changes
             total_job_changes += job_changes#The total change in employment across all households is accumulated to update the available jobs in the system dynamics model.
+            #for h in self.agents:
+
+            h.birth_process(
+            baseline_fertility_rate=self.baseline_fertility_rate,
+            fertility_reduction_rate=self.fertility_reduction_rate
+            )
+
+            h.death_process(
+            baseline_mortality_rate=self.baseline_mortality_rate,
+            child_multiplier=self.child_mortality_multiplier,
+            elderly_multiplier=self.elderly_mortality_multiplier
+            )
             if h.state == "connected":
                 h.consider_appliance_adoption(reliability, social_influence,cost_per_kwh,subsidy_rate)#If the household is connected to the microgrid, it considers adopting electric appliances.
                 

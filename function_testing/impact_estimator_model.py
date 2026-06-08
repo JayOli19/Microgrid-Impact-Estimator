@@ -92,6 +92,42 @@ class Household(Agent): #The Household class represents a household agent in the
         for name in APPLIANCE_CATALOG:
             self.electric_appliances[name] = False
 
+    def birth_process(self, baseline_fertility_rate, fertility_reduction_rate):
+
+
+        # Convert annual fertility to monthly
+        monthly_fertility = 1 - (1 - baseline_fertility_rate) ** (1 / 12)
+
+        for m in self.members:
+            if m["gender"] == "female" and 18 <= m["age"] <= 45:
+                fertility = monthly_fertility
+
+                # Electrification reduces fertility
+                if self.state == "connected":
+                    fertility *= (1 - fertility_reduction_rate)
+
+                if random.random() < fertility:
+                    self.members.append({"role":"child","education_state":"","schooling":0.0,"income":0,"exposure":0,"exposure_fraction":0.742,"gender":random.choice(["male","female"]),"age":random.randint(0, 17), "employed":"False"})
+
+    def death_process(self,baseline_mortality_rate,child_multiplier,elderly_multiplier):
+    
+        survivors = []
+
+        for m in self.members:
+            mortality = baseline_mortality_rate
+
+            if m["age"] < 5:
+                mortality *= child_multiplier
+            elif m["age"] >= 60:
+                mortality *= elderly_multiplier
+
+            # Convert annual mortality to monthly
+            monthly_mortality = 1 - (1 - mortality) ** (1 / 12)
+
+            if random.random() > monthly_mortality:
+                survivors.append(m)
+
+        self.members = survivors
 
     def electrify(self):#Changes the state of the household to "connected".
         self.state = "connected"
@@ -166,7 +202,7 @@ class Household(Agent): #The Household class represents a household agent in the
         employment_rate_baseline = annual_to_monthly(employment_rate_baseline)
         employment_rate_women_connected = annual_to_monthly(employment_rate_baseline+0.09)#Assumes a 9 percentage point increase in employment rate for women due to electrification
        
-        job_separation_rate = annual_to_monthly(job_separation_rate)
+        job_separation = annual_to_monthly(job_separation_rate)
         
         working_days = 20 # number of working days in a month        
 
@@ -251,7 +287,7 @@ class Household(Agent): #The Household class represents a household agent in the
 
         # Job separation process
         for m in self.members:
-            if m["employed"] and random.random()<job_separation_rate:
+            if m["employed"] and random.random()<job_separation:
                 m["employed"] = False
                 m["income"] = 0
                 available_jobs += 1
@@ -531,28 +567,27 @@ class ElectrificationSD:
     def __init__(self, model): #The constructor for the ElectrificationSD class initializes the stocks, flows, converters, and constants of the SD model.
         self.model = model
 
-        # Stocks
+        # Initialization of Stocks
         self.net_microgrid_income = model.stock("net_microgrid_income")
         self.no_of_failures = model.stock("no_of_failures")
         self.no_of_working_components = model.stock("no_of_working_components")
         self.no_of_current_repairs = model.stock("no_of_current_repairs")
         self.available_jobs = model.stock("available_jobs")
         self.discounted_social_welfare_function = model.stock("discounted_social_welfare_function")
-       
         
-        # Flows
+        # Initialization of Flows
         self.microgrid_income = model.flow("microgrid_income")
         self.microgrid_expenditures = model.flow("microgrid_expenditures")
         self.microgrid_income_flow = model.flow("microgrid_income_flow")
         self.failure_rate = model.flow("failure_rate")
-        self.fixture_rate = model.flow("fixture_rate")
+        #self.fixture_rate = model.flow("fixture_rate")
         self.job_creation = model.flow("job_creation")
         self.social_welfare_function = model.flow("social_welfare_function")
         self.employment_change = model.flow("employment_change")
         self.current_working_components = model.flow("current_working_components")
         self.previous_working_components = model.flow("previous_working_components")
 
-        # Converters
+        # Initialization of Converters
         self.households_connected = model.converter("households_connected")
         self.adopting_households = model.converter("adopting_households")
         self.power_use = model.converter("power_use")
@@ -561,20 +596,11 @@ class ElectrificationSD:
         self.saifi = model.converter("saifi")
         self.saidi = model.converter("saidi")
         self.availability = model.converter("availability")
-        self.no_of_customers = model.converter("no_of_customers")
         self.downtime = model.converter("downtime")
         self.reliability = model.converter("reliability")
-        self.social_influence_microgrid = model.converter("social_influence_microgrid")
         self.baseline_demand = model.converter("baseline_demand")
         self.total_demand = model.converter("total_demand")
-        self.cost_savings = model.converter("cost_savings")
-        self.total_energy_cost = model.converter("energy_cost")
-        self.baseline_fuel_cost = model.converter("baseline_fuel_cost")
-        self.co2_emissions = model.converter("co2_emissions")
-        self.total_cases = model.converter("total_cases")        
-        self.baseline_cases = model.converter("baseline_cases")
-        self.health_improvements = model.converter("health_improvements")
-        self.employment = model.converter("employment")
+
         self.business_income = model.converter("business_income")
         self.capital_investment = model.converter("capital_investment")
         self.load_ratio = model.converter("load_ratio")
@@ -582,13 +608,13 @@ class ElectrificationSD:
 
 
         # Aggregate social/economic flows and converters
-        self.changes_in_jobs = model.flow("changes_in_jobs")
+        self.changes_in_jobs = model.converter("changes_in_jobs")
         self.avg_income = model.converter("avg_income")
         self.appliance_demand = model.converter("appliance_demand")
         self.utility_sum = model.converter("utility_sum")
         
 
-        #Constants
+        # Initialization of Constants
         self.baseline_household_demand = model.constant("baseline_household_demand")
         self.no_of_households = model.constant("no_of_households")
         self.microgrid_capacity = model.constant("microgrid_capacity")
@@ -605,15 +631,16 @@ class ElectrificationSD:
         self.initial_jobs = model.constant("initial_jobs")
         self.eta = model.constant("eta")
         self.discount_rate = model.constant("discount_rate")
+        self.capacity_factor = model.constant("capacity_factor")
 
         # Equations
         self.baseline_demand.equation = ((self.baseline_household_demand) * self.households_connected)
-        self.total_demand.equation = self.baseline_demand+self.appliance_demand
-        self.power_use.equation = sd.min(self.total_demand,self.microgrid_capacity)
+        self.total_demand.equation = (self.baseline_demand+self.appliance_demand)
+        self.power_use.equation = sd.min(self.total_demand,(self.microgrid_capacity*720.0*self.capacity_factor))
         self.microgrid_income_flow.equation = self.power_use * self.cost_per_kwh
-        self.microgrid_expenditures.equation = ((self.failure_rate - self.fixture_rate)*self.cost_per_repair) + self.operating_expenditures
+        self.microgrid_expenditures.equation = (self.no_of_failures*self.cost_per_repair) + self.operating_expenditures
         self.net_microgrid_income.equation = self.microgrid_income_flow - self.microgrid_expenditures
-        self.load_ratio.equation = self.total_demand / sd.max(1, self.microgrid_capacity)
+        self.load_ratio.equation = self.total_demand / sd.max(1, self.microgrid_capacity*720.0*self.capacity_factor)
         self.income_ratio.equation = self.microgrid_income_flow / self.operating_expenditures
         self.mttr.equation = sd.lookup( #The mean time to repair (MTTR) is determined by looking up the income ratio in a predefined table.
             self.income_ratio,
@@ -627,13 +654,10 @@ class ElectrificationSD:
         self.failure_rate.equation = self.initial_failure_rate * self.no_of_working_components * self.failure_rate_multiplier
         self.no_of_failures.equation = self.failure_rate
         self.availability.equation = (1/self.failure_rate)/sd.max(1e-3, (1/self.failure_rate)+(self.mttr))
-        #self.fixture_rate.equation = self.no_of_current_repairs/self.mttr
         #number of working components
         self.current_working_components.equation = self.no_of_components*self.availability
         self.previous_working_components.equation = self.no_of_working_components
         self.no_of_working_components.equation = self.current_working_components - self.previous_working_components
-        #number of components being repaired
-        #self.no_of_current_repairs.equation = self.failure_rate - self.fixture_rate
         # Failure rate depends on maintenance delay
         self.downtime.equation = self.mttr * self.no_of_failures
         # SAIDI (interruptions per customer)
@@ -642,9 +666,6 @@ class ElectrificationSD:
         self.saifi.equation = self.no_of_failures / sd.max(1, self.households_connected)
         # Reliability improves as SAIDI decreases
         self.reliability.equation = 1/(1+0.25*self.saidi)
-
-        self.cost_savings.equation = 1 - (self.total_energy_cost/self.baseline_fuel_cost)
-        self.health_improvements.equation = 1 - (self.total_cases/self.baseline_cases)
 
         # Impact of Income on spending, business investment and job creation
         self.business_income.equation = self.mpc * self.local_spending_fraction * self.avg_income
@@ -659,7 +680,6 @@ class ElectrificationSD:
 
         # Initial values
         self.households_connected.initial_value = 0.0
-        #self.households_not_connected.initial_value = self.no_of_households
         self.operating_expenditures.equation = 5000.0
         self.initial_failure_rate.equation = 0.1
         self.no_of_failures.initial_value = 0.0
@@ -667,12 +687,13 @@ class ElectrificationSD:
         self.no_of_working_components.initial_value = self.no_of_components
         self.no_of_current_repairs.initial_value = 0.0
         self.available_jobs.initial_value = self.initial_jobs
-        self.initial_jobs.equation = 75
-        self.mpc.equation = 0.75
+        self.initial_jobs.equation = 75.0
+        self.mpc.equation = 0.7
         self.local_spending_fraction.equation = 0.6
-        self.investment_rate.equation = 0.15
+        self.investment_rate.equation = 0.1
         self.job_creation_efficiency.equation = 4.074e-3
         self.discount_rate.equation = 4.074e-3
+        self.capacity_factor.equation = 0.8
 
 
 # --- Hybrid Model ---
@@ -724,6 +745,13 @@ class ElectrificationHybrid(Model): #The constructor for the ElectrificationHybr
         kitchen_volume = self.kitchen_volume
         outdoor_concentration = self.outdoor_concentration
         dropout_reduction_rate = self.dropout_reduction_rate
+        # Demographic parameters
+        self.baseline_fertility_rate = 0.08      # annual probability per adult woman
+        self.fertility_reduction_rate = 0.3      # reduction when electrified
+
+        self.baseline_mortality_rate = 0.01      # annual base mortality
+        self.child_mortality_multiplier = 2.0
+        self.elderly_mortality_multiplier = 3.0
         total_job_changes = 0.0
         if time == self.starttime: #At the start of the simulation, it initializes the schooling, income, and CO2 emissions for each household agent, and calculates the baseline number of IHD cases attributable to PM2.5 exposure.
             for h in self.agents:
@@ -732,13 +760,24 @@ class ElectrificationHybrid(Model): #The constructor for the ElectrificationHybr
                 h.co2_emissions_initial() #initialize CO2 emissions for the first round
                 
             baseline_cases = sum(h.baseline_cases(air_change_rate_daily,kitchen_volume,outdoor_concentration) for h in self.agents)
-            self.sd_model.baseline_cases.equation = baseline_cases
         for h in self.agents:
             if h.state != "connected" and time%3==0: #household considers microgrid adoption every 3 months
                 h.consider_microgrid_adoption(reliability, social_influence,cost_per_kwh,air_change_rate_daily, kitchen_volume, outdoor_concentration)
             job_changes = h.income_and_employment(available_jobs,employment_rate_baseline,hourly_farm_wage,hourly_non_farm_wage,job_separation_rate, dropout_rate_baseline,baseline_monthly_wage_men,baseline_monthly_wage_women,baseline_schooling,electrification_effect_men,electrification_effect_women,farm_work_shift,dropout_reduction_rate)
             available_jobs += job_changes
             total_job_changes += job_changes#The total change in employment across all households is accumulated to update the available jobs in the system dynamics model.
+            #for h in self.agents:
+
+            h.birth_process(
+            baseline_fertility_rate=self.baseline_fertility_rate,
+            fertility_reduction_rate=self.fertility_reduction_rate
+            )
+
+            h.death_process(
+            baseline_mortality_rate=self.baseline_mortality_rate,
+            child_multiplier=self.child_mortality_multiplier,
+            elderly_multiplier=self.elderly_mortality_multiplier
+            )
             if h.state == "connected":
                 h.consider_appliance_adoption(reliability, social_influence,cost_per_kwh,subsidy_rate)#If the household is connected to the microgrid, it considers adopting electric appliances.
                 
@@ -747,8 +786,6 @@ class ElectrificationHybrid(Model): #The constructor for the ElectrificationHybr
         connected_count = sum(1 for h in self.agents if h.state == "connected")
         avg_income = sum(h.total_income() for h in self.agents) / len(self.agents) if len(self.agents) > 0 else 0
         appliance_demand = sum(h.appliance_demand() for h in self.agents)
-        baseline_fuel_cost = sum(h.baseline_fuel_cost () for h in self.agents)
-        total_energy_cost = sum(h.energy_cost(cost_per_kwh) for h in self.agents)
         co2_emissions = sum(h.co2_emissions() for h in self.agents)
         total_cases = sum(h.cases(air_change_rate_daily,kitchen_volume,outdoor_concentration) for h in self.agents)
         average_income_women = sum(h.income_women() for h in self.agents)/sum(h.total_women() for h in self.agents) if sum(h.total_women() for h in self.agents) > 0 else 0
@@ -761,11 +798,7 @@ class ElectrificationHybrid(Model): #The constructor for the ElectrificationHybr
         self.sd_model.households_connected.equation = connected_count
         self.sd_model.avg_income.equation = avg_income
         self.sd_model.appliance_demand.equation = appliance_demand
-        self.sd_model.total_energy_cost.equation = total_energy_cost
-        self.sd_model.baseline_fuel_cost.equation = baseline_fuel_cost
-        self.sd_model.total_cases.equation = total_cases
         self.sd_model.utility_sum.equation = social_welfare_function
-        self.sd_model.co2_emissions.equation = co2_emissions
         self.sd_model.changes_in_jobs.equation = total_job_changes
         employment = sum(
         1 for h in self.agents
@@ -773,7 +806,6 @@ class ElectrificationHybrid(Model): #The constructor for the ElectrificationHybr
         if m["employed"]
         )
 
-        self.sd_model.employment.equation = employment
 
 
         if time not in self.custom_stats:
@@ -801,7 +833,7 @@ class ElectrificationHybrid(Model): #The constructor for the ElectrificationHybr
         self.custom_stats[time]["microgrid_net_income"] = self.sd_model.net_microgrid_income(time)
         self.custom_stats[time]["power_use"] = self.sd_model.power_use(time)
         self.custom_stats[time]["no_of_current_working_components"] = self.sd_model.no_of_working_components(time)
-        
+        self.custom_stats[time]["available_jobs"] = self.sd_model.available_jobs(time)
 
         
 # --- Simulation Setup ---
